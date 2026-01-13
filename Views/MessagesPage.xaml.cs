@@ -1,2 +1,21 @@
+using SoccerLinkPlayerSideApp.ViewModels;
+
 namespace SoccerLinkPlayerSideApp.Views;
-public partial class MessagesPage : ContentPage { public MessagesPage() { InitializeComponent(); } }
+
+public partial class MessagesPage : ContentPage
+{
+    private readonly MessagesViewModel _viewModel;
+
+    public MessagesPage(MessagesViewModel viewModel)
+    {
+        InitializeComponent();
+        BindingContext = _viewModel = viewModel;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        // Pobierz wiadomoœci za ka¿dym razem gdy wchodzimy na ekran
+        await _viewModel.LoadMessagesAsync();
+    }
+}

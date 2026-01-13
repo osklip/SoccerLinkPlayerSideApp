@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using CommunityToolkit.Mvvm;
 using SoccerLinkPlayerSideApp.Services;
 using SoccerLinkPlayerSideApp.ViewModels;
 using SoccerLinkPlayerSideApp.Views;
@@ -19,20 +20,23 @@ namespace SoccerLinkPlayerSideApp
                 });
 
 #if DEBUG
-    		builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
-            // Services
+            // Rejestracja serwisu bazy (Singleton - jedna instancja)
             builder.Services.AddSingleton<DatabaseService>();
+            builder.Services.AddSingleton<UserSessionService>();
 
-            // Views & ViewModels
+            // Widoki i ViewModele
             builder.Services.AddTransient<LoginPage>();
             builder.Services.AddTransient<LoginViewModel>();
 
             builder.Services.AddTransient<DashboardPage>();
             builder.Services.AddTransient<DashboardViewModel>();
 
-            // Pages
+            // Podstrony
             builder.Services.AddTransient<MessagesPage>();
+            builder.Services.AddTransient<MessagesViewModel>();
+
             builder.Services.AddTransient<StatsPage>();
 
             return builder.Build();

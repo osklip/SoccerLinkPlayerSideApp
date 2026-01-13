@@ -1,14 +1,14 @@
 ﻿using SoccerLinkPlayerSideApp.Views;
 
-namespace SoccerLinkPlayerSideApp
+namespace SoccerLinkPlayerSideApp;
+
+public partial class AppShell : Shell
 {
-    public partial class AppShell : Shell
+    public AppShell()
     {
-        public AppShell()
-        {
-            InitializeComponent();
-            Routing.RegisterRoute(nameof(MessagesPage), typeof(MessagesPage));
-            Routing.RegisterRoute(nameof(StatsPage), typeof(StatsPage));
-        }
+        InitializeComponent();
+
+        Routing.RegisterRoute(nameof(MessagesPage), typeof(MessagesPage));
+        Routing.RegisterRoute(nameof(StatsPage), typeof(StatsPage));
     }
 }

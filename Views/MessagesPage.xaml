@@ -1,6 +1,30 @@
+<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:SoccerLinkPlayerSideApp.ViewModels"
+             xmlns:models="clr-namespace:SoccerLinkPlayerSideApp.Models"
              x:Class="SoccerLinkPlayerSideApp.Views.MessagesPage"
-             Title="Wiadomości">
-    <Label Text="Tu będzie lista wiadomości" VerticalOptions="Center" HorizontalOptions="Center"/>
+             Title="Wiadomości"
+             BackgroundColor="#F0F2F5">
+
+    <Grid RowDefinitions="Auto, *">
+        <ActivityIndicator Grid.Row="0" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="#2A5670" Margin="10"/>
+
+        <CollectionView Grid.Row="1" ItemsSource="{Binding Messages}" Margin="10">
+            <CollectionView.EmptyView>
+                <Label Text="Brak wiadomości" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Gray"/>
+            </CollectionView.EmptyView>
+            <CollectionView.ItemTemplate>
+                <DataTemplate x:DataType="models:Wiadomosc">
+                    <Border StrokeShape="RoundRectangle 10" BackgroundColor="White" Padding="15" Margin="0,0,0,10" StrokeThickness="0">
+                        <VerticalStackLayout Spacing="5">
+                            <Label Text="{Binding Temat}" FontAttributes="Bold" TextColor="#2A5670" FontSize="16"/>
+                            <Label Text="{Binding Tresc}" TextColor="Black" LineBreakMode="TailTruncation" MaxLines="2"/>
+                            <Label Text="{Binding DataWyslania, StringFormat='{0:dd.MM.yyyy HH:mm}'}" TextColor="Gray" FontSize="12" HorizontalOptions="End"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+    </Grid>
 </ContentPage>

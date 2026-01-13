@@ -2,17 +2,13 @@
 using CommunityToolkit.Mvvm.Input;
 using SoccerLinkPlayerSideApp.Services;
 using SoccerLinkPlayerSideApp.Views;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SoccerLinkPlayerSideApp.ViewModels
 {
     public partial class LoginViewModel : BaseViewModel
     {
         private readonly DatabaseService _databaseService;
+        private readonly UserSessionService _sessionService;
 
         [ObservableProperty]
         private string email;
@@ -20,9 +16,10 @@ namespace SoccerLinkPlayerSideApp.ViewModels
         [ObservableProperty]
         private string password;
 
-        public LoginViewModel(DatabaseService databaseService)
+        public LoginViewModel(DatabaseService databaseService, UserSessionService sessionService)
         {
             _databaseService = databaseService;
+            _sessionService = sessionService;
             Title = "Logowanie";
         }
 
@@ -46,7 +43,9 @@ namespace SoccerLinkPlayerSideApp.ViewModels
 
                 if (zawodnik != null)
                 {
+                    _sessionService.SetUser(zawodnik);
                     // Sukces - Przejście do Dashboardu
+                    await Shell.Current.DisplayAlert("Sukces", $"Witaj {zawodnik.Imie}!", "OK");
                     await Shell.Current.GoToAsync($"//{nameof(DashboardPage)}");
                 }
                 else
@@ -56,7 +55,7 @@ namespace SoccerLinkPlayerSideApp.ViewModels
             }
             catch (Exception ex)
             {
-                await Shell.Current.DisplayAlert("Błąd", $"Problem z połączeniem: {ex.Message}", "OK");
+                await Shell.Current.DisplayAlert("Błąd", $"Problem z aplikacją: {ex.Message}", "OK");
             }
             finally
             {

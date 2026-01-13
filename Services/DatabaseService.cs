@@ -1,101 +1,210 @@
-﻿using Libsql.Client;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SoccerLinkPlayerSideApp.Models;
 using System.Diagnostics;
+using System.Net.Http.Headers;
+using System.Text;
 
 namespace SoccerLinkPlayerSideApp.Services
 {
     public class DatabaseService
     {
-        private IDatabaseClient _dbClient;
+        private readonly HttpClient _httpClient;
 
-        private async Task InitAsync()
+        public DatabaseService()
         {
-            if (_dbClient != null) return;
+            _httpClient = new HttpClient();
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", Constants.DatabaseToken);
+        }
+
+        // --- LOGOWANIE ---
+        public async Task<Zawodnik?> LoginZawodnikAsync(string email, string haslo)
+        {
+            var safeEmail = email.Replace("'", "''");
+            var safePass = haslo.Replace("'", "''");
+            var sql = $"SELECT * FROM Zawodnik WHERE AdresEmail = '{safeEmail}' AND Haslo = '{safePass}'";
 
             try
             {
-                // ZMIANA: Metoda Create wymaga funkcji konfigurującej (Action<DatabaseClientOptions>)
-                // oraz jest asynchroniczna, więc używamy 'await'.
-                _dbClient = await DatabaseClient.Create(opts => {
-                    opts.Url = Constants.DatabaseUrl;
-                    opts.AuthToken = Constants.DatabaseToken;
-                });
+                var response = await ExecuteSqlAsync(sql);
+
+                if (response != null && response.Rows != null && response.Rows.Count > 0)
+                {
+                    var row = response.Rows[0];
+                    var cols = response.Columns;
+
+                    return new Zawodnik
+                    {
+                        ZawodnikID = ParseInt(GetValue(row, cols, "ZawodnikID")),
+                        AdresEmail = GetValue(row, cols, "AdresEmail"),
+                        Imie = GetValue(row, cols, "Imie"),
+                        Nazwisko = GetValue(row, cols, "Nazwisko"),
+                        Pozycja = GetValue(row, cols, "Pozycja"),
+                        NumerKoszulki = ParseInt(GetValue(row, cols, "NumerKoszulki")),
+                        TrenerID = ParseInt(GetValue(row, cols, "TrenerID")),
+                        NumerTelefonu = GetValue(row, cols, "NumerTelefonu"),
+                        LepszaNoga = GetValue(row, cols, "LepszaNoga"),
+                        CzyDyspozycyjny = ParseInt(GetValue(row, cols, "CzyDyspozycyjny"))
+                    };
+                }
+                return null;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Błąd inicjalizacji bazy: {ex.Message}");
+                Debug.WriteLine($"[LOGIN ERROR]: {ex.Message}");
                 throw;
             }
         }
 
-        public async Task<Zawodnik?> LoginZawodnikAsync(string email, string haslo)
+        // --- WIADOMOŚCI ---
+        public async Task<List<Wiadomosc>> GetWiadomosciAsync(int zawodnikId)
         {
-            await InitAsync();
-
-            var sql = "SELECT * FROM Zawodnicy WHERE AdresEmail = ? AND Haslo = ?";
+            var sql = $"SELECT * FROM Wiadomosc WHERE OdbiorcaID = {zawodnikId} ORDER BY DataWyslania DESC";
 
             try
             {
-                var resultSet = await _dbClient.Execute(sql, new object[] { email, haslo });
-                var row = resultSet.Rows.FirstOrDefault();
+                var response = await ExecuteSqlAsync(sql);
+                var wiadomosci = new List<Wiadomosc>();
 
-                if (row == null) return null;
-
-                var columns = resultSet.Columns.ToList();
-
-                return new Zawodnik
+                if (response != null && response.Rows != null)
                 {
-                    ZawodnikID = GetValue<int>(row, columns, "ZawodnikID"),
-                    AdresEmail = GetValue<string>(row, columns, "AdresEmail"),
-                    Haslo = GetValue<string>(row, columns, "Haslo"),
-                    NumerTelefonu = GetValue<string>(row, columns, "NumerTelefonu"),
-                    Imie = GetValue<string>(row, columns, "Imie"),
-                    Nazwisko = GetValue<string>(row, columns, "Nazwisko"),
-                    DataUrodzenia = GetValue<DateTime>(row, columns, "DataUrodzenia"),
-                    Pozycja = GetValue<string>(row, columns, "Pozycja"),
-                    NumerKoszulki = GetValue<int>(row, columns, "NumerKoszulki"),
-                    CzyDyspozycyjny = GetValue<int>(row, columns, "CzyDyspozycyjny"),
-                    LepszaNoga = GetValue<string>(row, columns, "LepszaNoga"),
-                    ProbyLogowania = GetValue<int>(row, columns, "ProbyLogowania"),
-                    TrenerID = GetValue<int>(row, columns, "TrenerID")
-                };
+                    var cols = response.Columns;
+                    foreach (var rowToken in response.Rows)
+                    {
+                        wiadomosci.Add(new Wiadomosc
+                        {
+                            WiadomoscID = ParseInt(GetValue(rowToken, cols, "WiadomoscID")),
+                            NadawcaID = ParseInt(GetValue(rowToken, cols, "NadawcaID")),
+                            OdbiorcaID = ParseInt(GetValue(rowToken, cols, "OdbiorcaID")),
+                            Tresc = GetValue(rowToken, cols, "Tresc"),
+                            DataWyslania = ParseDateTime(GetValue(rowToken, cols, "DataWyslania")),
+                            Temat = GetValue(rowToken, cols, "Temat")
+                        });
+                    }
+                }
+                return wiadomosci;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Database Error: {ex.Message}");
-                return null;
+                Debug.WriteLine($"[MSG ERROR]: {ex.Message}");
+                return new List<Wiadomosc>();
             }
         }
 
-        private T GetValue<T>(IEnumerable<object> row, List<string> columns, string columnName)
+        // --- STATYSTYKI ---
+        public async Task<List<StatystykiZawodnika>> GetStatystykiListAsync(int zawodnikId)
         {
-            int index = columns.IndexOf(columnName);
-            if (index == -1 || index >= row.Count()) return default;
+            var sql = $"SELECT * FROM StatystykiZawodnika WHERE ZawodnikID = {zawodnikId}";
 
-            var value = row.ElementAt(index);
-
-            if (value == null || value is DBNull) return default;
+            Debug.WriteLine($"[STATS] SQL: {sql}");
 
             try
             {
-                if (typeof(T) == typeof(int))
-                {
-                    if (value is long l) return (T)(object)(int)l;
-                    if (value is double d) return (T)(object)(int)d;
-                }
+                var response = await ExecuteSqlAsync(sql);
+                var list = new List<StatystykiZawodnika>();
 
-                if (typeof(T) == typeof(DateTime))
+                if (response != null && response.Rows != null)
                 {
-                    if (value is string s && DateTime.TryParse(s, out DateTime result))
-                        return (T)(object)result;
+                    var cols = response.Columns;
+                    foreach (var row in response.Rows)
+                    {
+                        // POPRAWKA: Mapujemy tylko pola istniejące w Twoim nowym modelu
+                        list.Add(new StatystykiZawodnika
+                        {
+                            StatZawodnikaID = ParseInt(GetValue(row, cols, "StatZawodnikaID")),
+                            MeczID = ParseInt(GetValue(row, cols, "MeczID")),
+                            ZawodnikID = ParseInt(GetValue(row, cols, "ZawodnikID")),
+                            TrenerID = ParseInt(GetValue(row, cols, "TrenerID")),
+                            Gole = ParseInt(GetValue(row, cols, "Gole")),
+                            Strzaly = ParseInt(GetValue(row, cols, "Strzaly")),
+                            StrzalyCelne = ParseInt(GetValue(row, cols, "StrzalyCelne")),
+                            StrzalyNiecelne = ParseInt(GetValue(row, cols, "StrzalyNiecelne")),
+                            PodaniaCelne = ParseInt(GetValue(row, cols, "PodaniaCelne")),
+                            Faule = ParseInt(GetValue(row, cols, "Faule")),
+                            ZolteKartki = ParseInt(GetValue(row, cols, "ZolteKartki")),
+                            CzerwoneKartki = ParseInt(GetValue(row, cols, "CzerwoneKartki")),
+                            CzysteKonta = ParseInt(GetValue(row, cols, "CzysteKonta"))
+                        });
+                    }
                 }
-
-                return (T)value;
+                return list;
             }
-            catch
+            catch (Exception ex)
             {
-                return default;
+                Debug.WriteLine($"[STATS ERROR]: {ex.Message}");
+                // Rzucamy wyjątek, aby zobaczyć błąd SQL w aplikacji
+                throw new Exception($"Błąd SQL: {ex.Message}");
             }
+        }
+
+        // --- CORE ---
+        private async Task<TursoResult?> ExecuteSqlAsync(string sql)
+        {
+            var requestBody = new
+            {
+                requests = new object[]
+                {
+                    new { type = "execute", stmt = new { sql = sql } },
+                    new { type = "close" }
+                }
+            };
+
+            var json = JsonConvert.SerializeObject(requestBody);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+            var url = $"{Constants.DatabaseUrl}/v2/pipeline";
+
+            var response = await _httpClient.PostAsync(url, content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode) throw new Exception($"HTTP Error: {response.StatusCode}");
+
+            var jsonResponse = JObject.Parse(responseString);
+            var results = jsonResponse["results"] as JArray;
+
+            if (results != null && results.Count > 0)
+            {
+                var firstResult = results[0];
+                if (firstResult["type"]?.ToString() == "error")
+                {
+                    throw new Exception($"SQL Error: {firstResult["error"]?["message"]}");
+                }
+
+                var executeResult = firstResult["response"]?["result"];
+                if (executeResult != null)
+                {
+                    return new TursoResult
+                    {
+                        Columns = executeResult["cols"]?.Select(c => c["name"]?.ToString()).ToList() ?? new List<string>(),
+                        Rows = executeResult["rows"] as JArray
+                    };
+                }
+            }
+            return null;
+        }
+
+        private string GetValue(JToken row, List<string> cols, string colName)
+        {
+            var rowArray = row as JArray;
+            if (rowArray == null) return string.Empty;
+            int index = cols.IndexOf(colName);
+            if (index == -1 || index >= rowArray.Count) return string.Empty;
+            return rowArray[index]["value"]?.ToString() ?? string.Empty;
+        }
+
+        private int ParseInt(string value) => int.TryParse(value, out int r) ? r : 0;
+        private DateTime ParseDateTime(string value) => DateTime.TryParse(value, out DateTime r) ? r : DateTime.MinValue;
+        private bool ParseBool(string value)
+        {
+            if (value == "1") return true;
+            if (bool.TryParse(value, out bool r)) return r;
+            return false;
+        }
+
+        private class TursoResult
+        {
+            public List<string> Columns { get; set; } = new();
+            public JArray? Rows { get; set; }
         }
     }
 }
