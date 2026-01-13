@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:viewmodels="clr-namespace:SoccerLinkPlayerSideApp.ViewModels"
+             x:Class="SoccerLinkPlayerSideApp.Views.DashboardPage"
+             Title="Panel Zawodnika"
+             BackgroundColor="#F0F2F5">
+
+    <Grid RowDefinitions="Auto, *" Padding="20" RowSpacing="20">
+        <Label Text="Menu Główne" FontSize="24" TextColor="#2A5670" FontAttributes="Bold" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="15">
+
+                <Grid ColumnDefinitions="*,*" RowDefinitions="120" ColumnSpacing="15">
+
+                    <Border Grid.Column="0" StrokeShape="RoundRectangle 10" BackgroundColor="White" StrokeThickness="0">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToMessagesCommand}"/>
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="5">
+                            <Image Source="messages_icon.png" HeightRequest="40" WidthRequest="40" Aspect="AspectFit"/>
+                            <Label Text="Wiadomości" TextColor="#2A5670" FontAttributes="Bold"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border Grid.Column="1" StrokeShape="RoundRectangle 10" BackgroundColor="White" StrokeThickness="0">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToStatsCommand}"/>
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="5">
+                            <Image Source="teamstats_icon.png" HeightRequest="40" WidthRequest="40" Aspect="AspectFit"/>
+                            <Label Text="Statystyki" TextColor="#2A5670" FontAttributes="Bold"/>
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <Button Text="Wyloguj się" Command="{Binding LogoutCommand}" BackgroundColor="#E74C3C" TextColor="White" Margin="0,30,0,0"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
