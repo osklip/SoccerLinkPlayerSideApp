@@ -38,6 +38,7 @@ namespace SoccerLinkPlayerSideApp
             builder.Services.AddTransient<MessagesViewModel>();
 
             builder.Services.AddTransient<StatsPage>();
+            builder.Services.AddTransient<StatsViewModel>();
 
             return builder.Build();
         }

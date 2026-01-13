@@ -11,8 +11,25 @@ namespace SoccerLinkPlayerSideApp.ViewModels
         private readonly DatabaseService _databaseService;
         private readonly UserSessionService _sessionService;
 
-        // Kolekcja połączona z listą w widoku
+        // Lista wyświetlana na ekranie
         public ObservableCollection<Wiadomosc> Messages { get; } = new();
+
+        // --- STANY ZAKŁADEK ---
+        [ObservableProperty]
+        private bool isReceivedTab = true; // Domyślnie Odebrane
+
+        [ObservableProperty]
+        private bool isSentTab = false;
+
+        // --- STAN FORMULARZA NOWEJ WIADOMOŚCI ---
+        [ObservableProperty]
+        private bool isComposeVisible = false;
+
+        [ObservableProperty]
+        private string newSubject;
+
+        [ObservableProperty]
+        private string newBody;
 
         public MessagesViewModel(DatabaseService databaseService, UserSessionService sessionService)
         {
@@ -21,7 +38,7 @@ namespace SoccerLinkPlayerSideApp.ViewModels
             Title = "Wiadomości";
         }
 
-        // Metoda wywoływana przy wejściu na stronę
+        // --- ŁADOWANIE DANYCH ---
         public async Task LoadMessagesAsync()
         {
             if (IsBusy) return;
@@ -37,21 +54,125 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                     return;
                 }
 
-                var messagesList = await _databaseService.GetWiadomosciAsync(_sessionService.CurrentUser.ZawodnikID);
+                int myId = _sessionService.CurrentUser.ZawodnikID;
+                List<Wiadomosc> fetchedMessages;
 
-                foreach (var msg in messagesList)
+                if (IsReceivedTab)
                 {
-                    Messages.Add(msg);
+                    fetchedMessages = await _databaseService.GetWiadomosciOdebraneAsync(myId);
+                }
+                else
+                {
+                    fetchedMessages = await _databaseService.GetWiadomosciWyslaneAsync(myId);
                 }
 
-                if (Messages.Count == 0)
+                foreach (var msg in fetchedMessages)
                 {
-                    // Opcjonalnie: obsługa braku wiadomości
+                    Messages.Add(msg);
                 }
             }
             catch (Exception ex)
             {
                 await Shell.Current.DisplayAlert("Błąd", $"Nie udało się pobrać wiadomości: {ex.Message}", "OK");
+            }
+            finally
+            {
+                IsBusy = false;
+            }
+        }
+
+        // --- PRZEŁĄCZANIE ZAKŁADEK ---
+        [RelayCommand]
+        async Task SwitchTabAsync(string tabName)
+        {
+            if (tabName == "Received")
+            {
+                IsReceivedTab = true;
+                IsSentTab = false;
+            }
+            else
+            {
+                IsReceivedTab = false;
+                IsSentTab = true;
+            }
+            // Przeładuj listę dla wybranej zakładki
+            await LoadMessagesAsync();
+        }
+
+        // --- OBSŁUGA NOWEJ WIADOMOŚCI ---
+
+        [RelayCommand]
+        void OpenCompose()
+        {
+            NewSubject = string.Empty;
+            NewBody = string.Empty;
+            IsComposeVisible = true;
+        }
+
+        [RelayCommand]
+        void CloseCompose()
+        {
+            IsComposeVisible = false;
+        }
+
+        [RelayCommand]
+        async Task SendMessageAsync()
+        {
+            if (string.IsNullOrWhiteSpace(NewSubject) || string.IsNullOrWhiteSpace(NewBody))
+            {
+                await Shell.Current.DisplayAlert("Uwaga", "Wpisz temat i treść wiadomości.", "OK");
+                return;
+            }
+
+            var user = _sessionService.CurrentUser;
+            if (user == null) return;
+
+            // Sprawdź czy zawodnik ma trenera
+            if (user.TrenerID <= 0)
+            {
+                await Shell.Current.DisplayAlert("Błąd", "Nie masz przypisanego trenera, do którego mógłbyś wysłać wiadomość.", "OK");
+                return;
+            }
+
+            try
+            {
+                IsBusy = true;
+
+                var msg = new Wiadomosc
+                {
+                    NadawcaID = user.ZawodnikID,
+                    OdbiorcaID = user.TrenerID, // Wysyłamy TYLKO do trenera
+                    Temat = NewSubject,
+                    Tresc = NewBody,
+                    DataWyslania = DateTime.Now
+                };
+
+                bool success = await _databaseService.SendWiadomoscAsync(msg);
+
+                if (success)
+                {
+                    await Shell.Current.DisplayAlert("Sukces", "Wiadomość wysłana do trenera.", "OK");
+                    IsComposeVisible = false;
+
+                    // Jeśli jesteśmy na zakładce wysłanych, odświeżamy listę
+                    if (IsSentTab)
+                    {
+                        await LoadMessagesAsync();
+                    }
+                    else
+                    {
+                        // Opcjonalnie przełącz na wysłane, żeby user zobaczył nową wiadomość
+                        await SwitchTabAsync("Sent");
+                    }
+                }
+                else
+                {
+                    await Shell.Current.DisplayAlert("Błąd", "Nie udało się wysłać wiadomości.", "OK");
+                }
+            }
+            catch (Exception ex)
+            {
+                await Shell.Current.DisplayAlert("Błąd", $"Wystąpił błąd: {ex.Message}", "OK");
             }
             finally
             {

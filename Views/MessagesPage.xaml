@@ -7,24 +7,76 @@
              Title="Wiadomości"
              BackgroundColor="#F0F2F5">
 
-    <Grid RowDefinitions="Auto, *">
-        <ActivityIndicator Grid.Row="0" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="#2A5670" Margin="10"/>
+    <Grid>
+        <Grid RowDefinitions="Auto, Auto, *">
 
-        <CollectionView Grid.Row="1" ItemsSource="{Binding Messages}" Margin="10">
-            <CollectionView.EmptyView>
-                <Label Text="Brak wiadomości" HorizontalOptions="Center" VerticalOptions="Center" TextColor="Gray"/>
-            </CollectionView.EmptyView>
-            <CollectionView.ItemTemplate>
-                <DataTemplate x:DataType="models:Wiadomosc">
-                    <Border StrokeShape="RoundRectangle 10" BackgroundColor="White" Padding="15" Margin="0,0,0,10" StrokeThickness="0">
-                        <VerticalStackLayout Spacing="5">
-                            <Label Text="{Binding Temat}" FontAttributes="Bold" TextColor="#2A5670" FontSize="16"/>
-                            <Label Text="{Binding Tresc}" TextColor="Black" LineBreakMode="TailTruncation" MaxLines="2"/>
-                            <Label Text="{Binding DataWyslania, StringFormat='{0:dd.MM.yyyy HH:mm}'}" TextColor="Gray" FontSize="12" HorizontalOptions="End"/>
-                        </VerticalStackLayout>
-                    </Border>
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-        </CollectionView>
+            <Grid Grid.Row="0" ColumnDefinitions="*,*" Padding="10" ColumnSpacing="10">
+                <Button Grid.Column="0" Text="Odebrane" 
+                        Command="{Binding SwitchTabCommand}" CommandParameter="Received"
+                        BackgroundColor="{Binding IsReceivedTab, Converter={StaticResource BoolToColorConverter}}"
+                        TextColor="White" FontAttributes="Bold" CornerRadius="20" HeightRequest="40"/>
+
+                <Button Grid.Column="1" Text="Wysłane" 
+                        Command="{Binding SwitchTabCommand}" CommandParameter="Sent"
+                        BackgroundColor="{Binding IsSentTab, Converter={StaticResource BoolToColorConverter}}"
+                        TextColor="White" FontAttributes="Bold" CornerRadius="20" HeightRequest="40"/>
+            </Grid>
+
+            <ActivityIndicator Grid.Row="1" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="#2A5670" Margin="10"/>
+
+            <CollectionView Grid.Row="2" ItemsSource="{Binding Messages}" Margin="10">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center">
+                        <Label Text="Brak wiadomości" TextColor="Gray" FontSize="18"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Wiadomosc">
+                        <Border StrokeShape="RoundRectangle 10" BackgroundColor="White" Padding="15" Margin="0,0,0,10" StrokeThickness="0">
+                            <Grid ColumnDefinitions="*, Auto" RowDefinitions="Auto, Auto, Auto">
+                                <Label Grid.Row="0" Grid.Column="0" Text="{Binding Temat}" FontAttributes="Bold" TextColor="#2A5670" FontSize="16"/>
+
+                                <Label Grid.Row="0" Grid.Column="1" Text="{Binding DataWyslania, StringFormat='{0:dd.MM HH:mm}'}" TextColor="Gray" FontSize="12"/>
+
+                                <Label Grid.Row="1" Grid.ColumnSpan="2" Text="{Binding Tresc}" TextColor="Black" LineBreakMode="TailTruncation" MaxLines="3" Margin="0,5,0,0"/>
+
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </Grid>
+
+        <Button Text="+" 
+                Command="{Binding OpenComposeCommand}"
+                BackgroundColor="#2A5670" TextColor="White" 
+                FontSize="30" WidthRequest="60" HeightRequest="60" CornerRadius="30"
+                HorizontalOptions="End" VerticalOptions="End" Margin="20"
+                Shadow="{Shadow Brush=Black, Offset='2,2', Opacity=0.5}"/>
+
+        <Grid BackgroundColor="#AA000000" IsVisible="{Binding IsComposeVisible}" Padding="20">
+            <Border BackgroundColor="White" VerticalOptions="Center" StrokeShape="RoundRectangle 20" Padding="20">
+                <VerticalStackLayout Spacing="15">
+                    <Label Text="Nowa Wiadomość do Trenera" FontSize="20" FontAttributes="Bold" TextColor="#2A5670" HorizontalOptions="Center"/>
+
+                    <Entry Placeholder="Temat" Text="{Binding NewSubject}" BackgroundColor="#F5F5F5" TextColor="Black"/>
+
+                    <Editor Placeholder="Treść wiadomości..." Text="{Binding NewBody}" HeightRequest="150" BackgroundColor="#F5F5F5" TextColor="Black" AutoSize="TextChanges"/>
+
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="15">
+                        <Button Grid.Column="0" Text="Anuluj" Command="{Binding CloseComposeCommand}" BackgroundColor="Gray" TextColor="White"/>
+                        <Button Grid.Column="1" Text="Wyślij" Command="{Binding SendMessageCommand}" BackgroundColor="#2A5670" TextColor="White"/>
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
     </Grid>
+
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <models:BoolToColorConverter x:Key="BoolToColorConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
 </ContentPage>
