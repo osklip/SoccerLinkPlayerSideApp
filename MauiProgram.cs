@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using CommunityToolkit.Mvvm;
+using CommunityToolkit.Maui;
 using SoccerLinkPlayerSideApp.Services;
 using SoccerLinkPlayerSideApp.ViewModels;
 using SoccerLinkPlayerSideApp.Views;
@@ -13,6 +14,7 @@ namespace SoccerLinkPlayerSideApp
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseMauiCommunityToolkit()
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -39,6 +41,9 @@ namespace SoccerLinkPlayerSideApp
 
             builder.Services.AddTransient<StatsPage>();
             builder.Services.AddTransient<StatsViewModel>();
+
+            builder.Services.AddTransient<CalendarPage>();
+            builder.Services.AddTransient<CalendarViewModel>();
 
             return builder.Build();
         }

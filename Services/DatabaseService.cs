@@ -18,7 +18,7 @@ namespace SoccerLinkPlayerSideApp.Services
                 new AuthenticationHeaderValue("Bearer", Constants.DatabaseToken);
         }
 
-        // --- LOGOWANIE (Bez zmian) ---
+        // --- LOGOWANIE ---
         public async Task<Zawodnik?> LoginZawodnikAsync(string email, string haslo)
         {
             var safeEmail = email.Replace("'", "''");
@@ -45,7 +45,10 @@ namespace SoccerLinkPlayerSideApp.Services
                         TrenerID = ParseInt(GetValue(row, cols, "TrenerID")),
                         NumerTelefonu = GetValue(row, cols, "NumerTelefonu"),
                         LepszaNoga = GetValue(row, cols, "LepszaNoga"),
-                        CzyDyspozycyjny = ParseInt(GetValue(row, cols, "CzyDyspozycyjny"))
+                        CzyDyspozycyjny = ParseInt(GetValue(row, cols, "CzyDyspozycyjny")),
+                        ProbyLogowania = ParseInt(GetValue(row, cols, "ProbyLogowania")),
+                        Haslo = GetValue(row, cols, "Haslo"),
+                        DataUrodzenia = ParseDateTime(GetValue(row, cols, "DataUrodzenia"))
                     };
                 }
                 return null;
@@ -57,12 +60,11 @@ namespace SoccerLinkPlayerSideApp.Services
             }
         }
 
-        // --- WIADOMOŚCI ODEBRANE ---
+        // --- WIADOMOŚCI ---
+
         public async Task<List<Wiadomosc>> GetWiadomosciOdebraneAsync(int zawodnikId)
         {
-            // POPRAWKA: Filtrujemy nie tylko po ID, ale też po typie "Zawodnik"
             var sql = $"SELECT * FROM Wiadomosc WHERE OdbiorcaID = {zawodnikId} AND TypOdbiorcy = 'Zawodnik' ORDER BY DataWyslania DESC";
-
             try
             {
                 var response = await ExecuteSqlAsync(sql);
@@ -75,12 +77,9 @@ namespace SoccerLinkPlayerSideApp.Services
             }
         }
 
-        // --- WIADOMOŚCI WYSŁANE ---
         public async Task<List<Wiadomosc>> GetWiadomosciWyslaneAsync(int zawodnikId)
         {
-            // POPRAWKA: Filtrujemy wiadomości wysłane przez nas (jako "Zawodnik")
             var sql = $"SELECT * FROM Wiadomosc WHERE NadawcaID = {zawodnikId} AND TypNadawcy = 'Zawodnik' ORDER BY DataWyslania DESC";
-
             try
             {
                 var response = await ExecuteSqlAsync(sql);
@@ -93,14 +92,13 @@ namespace SoccerLinkPlayerSideApp.Services
             }
         }
 
-        // --- WYSYŁANIE WIADOMOŚCI ---
         public async Task<bool> SendWiadomoscAsync(Wiadomosc msg)
         {
             var safeTemat = msg.Temat?.Replace("'", "''") ?? "";
             var safeTresc = msg.Tresc?.Replace("'", "''") ?? "";
             var dataStr = msg.DataWyslania.ToString("yyyy-MM-dd HH:mm:ss");
 
-            // POPRAWKA: Dodajemy 'Zawodnik' jako Nadawcę i 'Trener' jako Odbiorcę
+            // UWAGA: W modelu Wiadomosc nie ma pola CzyPrzeczytana, więc go nie wysyłamy.
             var sql = $"INSERT INTO Wiadomosc (NadawcaID, OdbiorcaID, TypNadawcy, TypOdbiorcy, Temat, Tresc, DataWyslania) " +
                       $"VALUES ({msg.NadawcaID}, {msg.OdbiorcaID}, 'Zawodnik', 'Trener', '{safeTemat}', '{safeTresc}', '{dataStr}')";
 
@@ -115,6 +113,124 @@ namespace SoccerLinkPlayerSideApp.Services
                 return false;
             }
         }
+
+        private List<Wiadomosc> ParseWiadomosci(TursoResult? response)
+        {
+            var list = new List<Wiadomosc>();
+            if (response != null && response.Rows != null)
+            {
+                var cols = response.Columns;
+                foreach (var rowToken in response.Rows)
+                {
+                    list.Add(new Wiadomosc
+                    {
+                        WiadomoscID = ParseInt(GetValue(rowToken, cols, "WiadomoscID")),
+                        NadawcaID = ParseInt(GetValue(rowToken, cols, "NadawcaID")),
+                        OdbiorcaID = ParseInt(GetValue(rowToken, cols, "OdbiorcaID")),
+                        TypNadawcy = GetValue(rowToken, cols, "TypNadawcy"),
+                        TypOdbiorcy = GetValue(rowToken, cols, "TypOdbiorcy"),
+                        Tresc = GetValue(rowToken, cols, "Tresc"),
+                        DataWyslania = ParseDateTime(GetValue(rowToken, cols, "DataWyslania")),
+                        Temat = GetValue(rowToken, cols, "Temat")
+                        // Brak pola CzyPrzeczytana w modelu
+                    });
+                }
+            }
+            return list;
+        }
+
+
+        // --- KALENDARZ (Mecze, Treningi, Wydarzenia) ---
+
+        public async Task<List<Mecz>> GetMeczeAsync(int trenerId)
+        {
+            var sql = $"SELECT * FROM Mecz WHERE TrenerID = {trenerId} ORDER BY Data ASC";
+            try
+            {
+                var response = await ExecuteSqlAsync(sql);
+                var list = new List<Mecz>();
+                if (response?.Rows != null)
+                {
+                    var cols = response.Columns;
+                    foreach (var row in response.Rows)
+                    {
+                        list.Add(new Mecz
+                        {
+                            MeczID = ParseInt(GetValue(row, cols, "MeczID")),
+                            SkladMeczowyID = ParseInt(GetValue(row, cols, "SkladMeczowyID")),
+                            TrenerID = ParseInt(GetValue(row, cols, "TrenerID")),
+                            Przeciwnik = GetValue(row, cols, "Przeciwnik"),
+                            Data = ParseDateTime(GetValue(row, cols, "Data")),
+                            Godzina = ParseDateTime(GetValue(row, cols, "Godzina")),
+                            Miejsce = GetValue(row, cols, "Miejsce")
+                        });
+                    }
+                }
+                return list;
+            }
+            catch (Exception ex) { Debug.WriteLine($"[MECZE ERROR]: {ex.Message}"); return new List<Mecz>(); }
+        }
+
+        public async Task<List<Trening>> GetTreningiAsync(int trenerId)
+        {
+            var sql = $"SELECT * FROM Trening WHERE TrenerID = {trenerId} ORDER BY Data ASC";
+            try
+            {
+                var response = await ExecuteSqlAsync(sql);
+                var list = new List<Trening>();
+                if (response?.Rows != null)
+                {
+                    var cols = response.Columns;
+                    foreach (var row in response.Rows)
+                    {
+                        list.Add(new Trening
+                        {
+                            TreningID = ParseInt(GetValue(row, cols, "TreningID")),
+                            Typ = GetValue(row, cols, "Typ"),
+                            ListaObecnosciID = ParseInt(GetValue(row, cols, "ListaObecnosciID")),
+                            Data = ParseDateTime(GetValue(row, cols, "Data")),
+                            GodzinaRozpoczecia = ParseDateTime(GetValue(row, cols, "GodzinaRozpoczecia")),
+                            GodzinaZakonczenia = ParseDateTime(GetValue(row, cols, "GodzinaZakonczenia")),
+                            Miejsce = GetValue(row, cols, "Miejsce"),
+                            TrenerID = ParseInt(GetValue(row, cols, "TrenerID"))
+                        });
+                    }
+                }
+                return list;
+            }
+            catch (Exception ex) { Debug.WriteLine($"[TRENINGI ERROR]: {ex.Message}"); return new List<Trening>(); }
+        }
+
+        public async Task<List<Wydarzenie>> GetWydarzeniaAsync(int trenerId)
+        {
+            var sql = $"SELECT * FROM Wydarzenie WHERE TrenerID = {trenerId} ORDER BY Data ASC";
+            try
+            {
+                var response = await ExecuteSqlAsync(sql);
+                var list = new List<Wydarzenie>();
+                if (response?.Rows != null)
+                {
+                    var cols = response.Columns;
+                    foreach (var row in response.Rows)
+                    {
+                        list.Add(new Wydarzenie
+                        {
+                            WydarzenieID = ParseInt(GetValue(row, cols, "WydarzenieID")),
+                            Nazwa = GetValue(row, cols, "Nazwa"),
+                            Miejsce = GetValue(row, cols, "Miejsce"),
+                            Data = ParseDateTime(GetValue(row, cols, "Data")),
+                            GodzinaStart = ParseDateTime(GetValue(row, cols, "GodzinaStart")),
+                            GodzinaKoniec = ParseDateTime(GetValue(row, cols, "GodzinaKoniec")),
+                            Opis = GetValue(row, cols, "Opis"),
+                            TrenerID = ParseInt(GetValue(row, cols, "TrenerID"))
+                        });
+                    }
+                }
+                return list;
+            }
+            catch (Exception ex) { Debug.WriteLine($"[WYDARZENIA ERROR]: {ex.Message}"); return new List<Wydarzenie>(); }
+        }
+
 
         // --- STATYSTYKI ---
         public async Task<List<StatystykiZawodnika>> GetStatystykiListAsync(int zawodnikId)
@@ -158,34 +274,8 @@ namespace SoccerLinkPlayerSideApp.Services
             }
         }
 
-        // --- HELPERY ---
-        private List<Wiadomosc> ParseWiadomosci(TursoResult? response)
-        {
-            var list = new List<Wiadomosc>();
-            if (response != null && response.Rows != null)
-            {
-                var cols = response.Columns;
-                foreach (var rowToken in response.Rows)
-                {
-                    list.Add(new Wiadomosc
-                    {
-                        WiadomoscID = ParseInt(GetValue(rowToken, cols, "WiadomoscID")),
-                        NadawcaID = ParseInt(GetValue(rowToken, cols, "NadawcaID")),
-                        OdbiorcaID = ParseInt(GetValue(rowToken, cols, "OdbiorcaID")),
 
-                        // Mapowanie nowych pól
-                        TypNadawcy = GetValue(rowToken, cols, "TypNadawcy"),
-                        TypOdbiorcy = GetValue(rowToken, cols, "TypOdbiorcy"),
-
-                        Tresc = GetValue(rowToken, cols, "Tresc"),
-                        DataWyslania = ParseDateTime(GetValue(rowToken, cols, "DataWyslania")),
-                        Temat = GetValue(rowToken, cols, "Temat")
-                    });
-                }
-            }
-            return list;
-        }
-
+        // --- CORE (Bez zmian) ---
         private async Task<TursoResult?> ExecuteSqlAsync(string sql)
         {
             var requestBody = new
