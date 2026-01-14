@@ -21,13 +21,11 @@
                 <Border IsVisible="{Binding HasNearestEvent}" StrokeShape="RoundRectangle 15" BackgroundColor="{Binding NearestEvent.Color}" StrokeThickness="0" Padding="0">
                     <Grid ColumnDefinitions="15, *, Auto" BackgroundColor="White">
                         <BoxView Grid.Column="0" Color="{Binding NearestEvent.Color}" VerticalOptions="Fill"/>
-
                         <VerticalStackLayout Grid.Column="1" Padding="15" Spacing="5">
                             <Label Text="{Binding NearestEvent.Title}" FontAttributes="Bold" FontSize="18" TextColor="#2A5670"/>
                             <Label Text="{Binding NearestEvent.Description}" TextColor="Gray" FontSize="14"/>
                             <Label Text="{Binding NearestEvent.Date, StringFormat='{0:dd MMMM, godz. HH:mm}'}" TextColor="Black" FontAttributes="Bold"/>
                         </VerticalStackLayout>
-
                         <Label Grid.Column="2" Text="{Binding NearestEvent.Icon}" FontSize="30" VerticalOptions="Center" Margin="0,0,20,0"/>
                     </Grid>
                 </Border>
@@ -38,6 +36,7 @@
                         <Label Text="Brak nadchodzących wydarzeń" TextColor="Gray" IsVisible="{Binding IsLoadingEvent, Converter={StaticResource InvertedBoolConverter}}"/>
                     </VerticalStackLayout>
                 </Border>
+
 
                 <Label Text="Menu" FontAttributes="Bold" TextColor="Black" Margin="0,10,0,0"/>
 

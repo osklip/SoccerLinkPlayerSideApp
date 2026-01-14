@@ -41,12 +41,19 @@ namespace SoccerLinkPlayerSideApp.ViewModels
 
         private async Task LoadNearestEventAsync()
         {
-            if (IsLoadingEvent) return;
             try
             {
                 IsLoadingEvent = true;
+
+                if (_sessionService.CurrentUser == null || _sessionService.CurrentUser.TrenerID <= 0)
+                {
+                    HasNearestEvent = false;
+                    return;
+                }
+
                 int trenerId = _sessionService.CurrentUser.TrenerID;
 
+                // 1. POBIERANIE DANYCH
                 var taskMecze = _databaseService.GetMeczeAsync(trenerId);
                 var taskTreningi = _databaseService.GetTreningiAsync(trenerId);
                 var taskWydarzenia = _databaseService.GetWydarzeniaAsync(trenerId);
@@ -55,42 +62,58 @@ namespace SoccerLinkPlayerSideApp.ViewModels
 
                 var allItems = new List<CalendarItem>();
 
-                // Mapowanie MECZ
+                // 2. MAPOWANIE MECZÓW
                 foreach (var m in taskMecze.Result)
+                {
+                    var fullDate = m.Data.Date + m.Godzina.TimeOfDay;
                     allItems.Add(new CalendarItem
                     {
                         Title = $"Mecz: {m.Przeciwnik}",
                         Description = m.Miejsce,
-                        Date = m.Data.Date + m.Godzina.TimeOfDay,
-                        Color = "#E74C3C",
+                        Date = fullDate,
+                        Type = "Mecz",
+                        Color = "#E74C3C", // Czerwony
                         Icon = "⚽"
                     });
+                }
 
-                // Mapowanie TRENING
+                // 3. MAPOWANIE TRENINGÓW
                 foreach (var t in taskTreningi.Result)
+                {
+                    var fullDate = t.Data.Date + t.GodzinaRozpoczecia.TimeOfDay;
                     allItems.Add(new CalendarItem
                     {
                         Title = $"Trening: {t.Typ}",
                         Description = t.Miejsce,
-                        Date = t.Data.Date + t.GodzinaRozpoczecia.TimeOfDay,
-                        Color = "#2A5670",
+                        Date = fullDate,
+                        Type = "Trening",
+                        Color = "#2A5670", // Niebieski
                         Icon = "🏃"
                     });
+                }
 
-                // Mapowanie WYDARZENIE
+                // 4. MAPOWANIE WYDARZEŃ
                 foreach (var w in taskWydarzenia.Result)
+                {
+                    var fullDate = w.Data.Date + w.GodzinaStart.TimeOfDay;
                     allItems.Add(new CalendarItem
                     {
                         Title = w.Nazwa,
                         Description = w.Miejsce,
-                        Date = w.Data.Date + w.GodzinaStart.TimeOfDay,
-                        Color = "#F1C40F",
+                        Date = fullDate,
+                        Type = "Wydarzenie",
+                        Color = "#F1C40F", // Żółty
                         Icon = "📅"
                     });
+                }
 
-                // SZUKAMY NAJBLIŻSZEGO
+                // 5. FILTROWANIE I WYBÓR (Najbliższe przyszłe)
                 var now = DateTime.Now;
-                var next = allItems.Where(x => x.Date > now).OrderBy(x => x.Date).FirstOrDefault();
+
+                var next = allItems
+                            .Where(x => x.Date >= now)
+                            .OrderBy(x => x.Date)
+                            .FirstOrDefault();
 
                 if (next != null)
                 {
@@ -102,9 +125,9 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                     HasNearestEvent = false;
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                System.Diagnostics.Debug.WriteLine($"Error dashboard event: {ex.Message}");
+                // W razie błędu po prostu nie pokazujemy kafelka
                 HasNearestEvent = false;
             }
             finally

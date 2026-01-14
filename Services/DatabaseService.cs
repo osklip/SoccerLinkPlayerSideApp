@@ -61,7 +61,6 @@ namespace SoccerLinkPlayerSideApp.Services
         }
 
         // --- WIADOMOŚCI ---
-
         public async Task<List<Wiadomosc>> GetWiadomosciOdebraneAsync(int zawodnikId)
         {
             var sql = $"SELECT * FROM Wiadomosc WHERE OdbiorcaID = {zawodnikId} AND TypOdbiorcy = 'Zawodnik' ORDER BY DataWyslania DESC";
@@ -70,11 +69,7 @@ namespace SoccerLinkPlayerSideApp.Services
                 var response = await ExecuteSqlAsync(sql);
                 return ParseWiadomosci(response);
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[MSG RECEIVED ERROR]: {ex.Message}");
-                return new List<Wiadomosc>();
-            }
+            catch (Exception ex) { Debug.WriteLine($"[MSG ERROR]: {ex.Message}"); return new List<Wiadomosc>(); }
         }
 
         public async Task<List<Wiadomosc>> GetWiadomosciWyslaneAsync(int zawodnikId)
@@ -85,11 +80,7 @@ namespace SoccerLinkPlayerSideApp.Services
                 var response = await ExecuteSqlAsync(sql);
                 return ParseWiadomosci(response);
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[MSG SENT ERROR]: {ex.Message}");
-                return new List<Wiadomosc>();
-            }
+            catch (Exception ex) { Debug.WriteLine($"[MSG ERROR]: {ex.Message}"); return new List<Wiadomosc>(); }
         }
 
         public async Task<bool> SendWiadomoscAsync(Wiadomosc msg)
@@ -98,7 +89,6 @@ namespace SoccerLinkPlayerSideApp.Services
             var safeTresc = msg.Tresc?.Replace("'", "''") ?? "";
             var dataStr = msg.DataWyslania.ToString("yyyy-MM-dd HH:mm:ss");
 
-            // UWAGA: W modelu Wiadomosc nie ma pola CzyPrzeczytana, więc go nie wysyłamy.
             var sql = $"INSERT INTO Wiadomosc (NadawcaID, OdbiorcaID, TypNadawcy, TypOdbiorcy, Temat, Tresc, DataWyslania) " +
                       $"VALUES ({msg.NadawcaID}, {msg.OdbiorcaID}, 'Zawodnik', 'Trener', '{safeTemat}', '{safeTresc}', '{dataStr}')";
 
@@ -107,11 +97,7 @@ namespace SoccerLinkPlayerSideApp.Services
                 var response = await ExecuteSqlAsync(sql);
                 return response != null;
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[SEND MSG ERROR]: {ex.Message}");
-                return false;
-            }
+            catch (Exception ex) { Debug.WriteLine($"[SEND MSG ERROR]: {ex.Message}"); return false; }
         }
 
         private List<Wiadomosc> ParseWiadomosci(TursoResult? response)
@@ -132,15 +118,13 @@ namespace SoccerLinkPlayerSideApp.Services
                         Tresc = GetValue(rowToken, cols, "Tresc"),
                         DataWyslania = ParseDateTime(GetValue(rowToken, cols, "DataWyslania")),
                         Temat = GetValue(rowToken, cols, "Temat")
-                        // Brak pola CzyPrzeczytana w modelu
                     });
                 }
             }
             return list;
         }
 
-
-        // --- KALENDARZ (Mecze, Treningi, Wydarzenia) ---
+        // --- KALENDARZ ---
 
         public async Task<List<Mecz>> GetMeczeAsync(int trenerId)
         {
@@ -151,6 +135,9 @@ namespace SoccerLinkPlayerSideApp.Services
                 var list = new List<Mecz>();
                 if (response?.Rows != null)
                 {
+                    // DIAGNOSTYKA: Wypisz kolumny z bazy
+                    Debug.WriteLine($"[DB MECZ] Kolumny: {string.Join(", ", response.Columns)}");
+
                     var cols = response.Columns;
                     foreach (var row in response.Rows)
                     {
@@ -231,17 +218,14 @@ namespace SoccerLinkPlayerSideApp.Services
             catch (Exception ex) { Debug.WriteLine($"[WYDARZENIA ERROR]: {ex.Message}"); return new List<Wydarzenie>(); }
         }
 
-
         // --- STATYSTYKI ---
         public async Task<List<StatystykiZawodnika>> GetStatystykiListAsync(int zawodnikId)
         {
             var sql = $"SELECT * FROM StatystykiZawodnika WHERE ZawodnikID = {zawodnikId}";
-
             try
             {
                 var response = await ExecuteSqlAsync(sql);
                 var list = new List<StatystykiZawodnika>();
-
                 if (response != null && response.Rows != null)
                 {
                     var cols = response.Columns;
@@ -274,8 +258,9 @@ namespace SoccerLinkPlayerSideApp.Services
             }
         }
 
+        // --- HELPERY ---
 
-        // --- CORE (Bez zmian) ---
+        // Zmieniono na publiczne dla celów diagnostycznych, jeśli potrzeba
         private async Task<TursoResult?> ExecuteSqlAsync(string sql)
         {
             var requestBody = new
@@ -286,11 +271,9 @@ namespace SoccerLinkPlayerSideApp.Services
                     new { type = "close" }
                 }
             };
-
             var json = JsonConvert.SerializeObject(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var url = $"{Constants.DatabaseUrl}/v2/pipeline";
-
             var response = await _httpClient.PostAsync(url, content);
             var responseString = await response.Content.ReadAsStringAsync();
 
@@ -302,11 +285,7 @@ namespace SoccerLinkPlayerSideApp.Services
             if (results != null && results.Count > 0)
             {
                 var firstResult = results[0];
-                if (firstResult["type"]?.ToString() == "error")
-                {
-                    throw new Exception($"SQL Error: {firstResult["error"]?["message"]}");
-                }
-
+                if (firstResult["type"]?.ToString() == "error") throw new Exception($"SQL Error: {firstResult["error"]?["message"]}");
                 var executeResult = firstResult["response"]?["result"];
                 if (executeResult != null)
                 {
@@ -320,11 +299,16 @@ namespace SoccerLinkPlayerSideApp.Services
             return null;
         }
 
+        // --- FIX CASE-SENSITIVITY ---
+        // Ta metoda teraz ignoruje wielkość liter przy szukaniu kolumny!
         private string GetValue(JToken row, List<string> cols, string colName)
         {
             var rowArray = row as JArray;
             if (rowArray == null) return string.Empty;
-            int index = cols.IndexOf(colName);
+
+            // Szukamy indeksu ignorując wielkość liter
+            int index = cols.FindIndex(c => string.Equals(c, colName, StringComparison.OrdinalIgnoreCase));
+
             if (index == -1 || index >= rowArray.Count) return string.Empty;
             return rowArray[index]["value"]?.ToString() ?? string.Empty;
         }

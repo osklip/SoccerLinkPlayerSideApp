@@ -1,11 +1,7 @@
-﻿using SoccerLinkPlayerSideApp.Models;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using SoccerLinkPlayerSideApp.Models;
 using SoccerLinkPlayerSideApp.Services;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SoccerLinkPlayerSideApp.ViewModels
 {
@@ -36,72 +32,65 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                 int trenerId = _sessionService.CurrentUser.TrenerID;
                 if (trenerId <= 0) return;
 
-                // 1. Pobierz dane równolegle
+                // 1. Pobierz dane
                 var taskMecze = _databaseService.GetMeczeAsync(trenerId);
                 var taskTreningi = _databaseService.GetTreningiAsync(trenerId);
                 var taskWydarzenia = _databaseService.GetWydarzeniaAsync(trenerId);
 
                 await Task.WhenAll(taskMecze, taskTreningi, taskWydarzenia);
 
-                var mecze = await taskMecze;
-                var treningi = await taskTreningi;
-                var wydarzenia = await taskWydarzenia;
-
                 var allItems = new List<CalendarItem>();
 
-                // 2. Mapowanie MECZÓW
-                foreach (var m in mecze)
+                // 2. Mapowanie
+                foreach (var m in taskMecze.Result)
                 {
-                    // Łączymy Datę i Godzinę
-                    var fullDate = m.Data.Date + m.Godzina.TimeOfDay;
-
                     allItems.Add(new CalendarItem
                     {
                         Title = $"Mecz: {m.Przeciwnik}",
                         Description = m.Miejsce,
-                        Date = fullDate,
+                        Date = m.Data.Date + m.Godzina.TimeOfDay,
                         Type = "Mecz",
-                        Color = "#E74C3C", // Czerwony
+                        Color = "#E74C3C",
                         Icon = "⚽"
                     });
                 }
 
-                // 3. Mapowanie TRENINGÓW
-                foreach (var t in treningi)
+                foreach (var t in taskTreningi.Result)
                 {
-                    var fullDate = t.Data.Date + t.GodzinaRozpoczecia.TimeOfDay;
-
                     allItems.Add(new CalendarItem
                     {
                         Title = $"Trening: {t.Typ}",
                         Description = t.Miejsce,
-                        Date = fullDate,
+                        Date = t.Data.Date + t.GodzinaRozpoczecia.TimeOfDay,
                         Type = "Trening",
-                        Color = "#2A5670", // Niebieski
+                        Color = "#2A5670",
                         Icon = "🏃"
                     });
                 }
 
-                // 4. Mapowanie WYDARZEŃ
-                foreach (var w in wydarzenia)
+                foreach (var w in taskWydarzenia.Result)
                 {
-                    var fullDate = w.Data.Date + w.GodzinaStart.TimeOfDay;
-
                     allItems.Add(new CalendarItem
                     {
                         Title = w.Nazwa,
-                        Description = w.Miejsce, // Lub w.Opis
-                        Date = fullDate,
+                        Description = w.Miejsce,
+                        Date = w.Data.Date + w.GodzinaStart.TimeOfDay,
                         Type = "Wydarzenie",
-                        Color = "#F1C40F", // Żółty
+                        Color = "#F1C40F",
                         Icon = "📅"
                     });
                 }
 
-                // 5. Sortowanie chronologiczne
-                var sortedItems = allItems.OrderBy(x => x.Date).ToList();
+                // 3. FILTROWANIE (Tylko przyszłe) + Sortowanie
+                var now = DateTime.Now;
 
-                foreach (var item in sortedItems)
+                // Zmieniono warunek na >= aby pokazywać też te, które trwają w tej chwili
+                var futureItems = allItems
+                                    .Where(x => x.Date >= now)
+                                    .OrderBy(x => x.Date)
+                                    .ToList();
+
+                foreach (var item in futureItems)
                 {
                     Events.Add(item);
                 }
