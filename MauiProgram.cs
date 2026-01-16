@@ -32,6 +32,9 @@ namespace SoccerLinkPlayerSideApp
             builder.Services.AddTransient<LoginPage>();
             builder.Services.AddTransient<LoginViewModel>();
 
+            builder.Services.AddTransient<ForgotPasswordPage>();
+            builder.Services.AddTransient<ForgotPasswordViewModel>();
+
             builder.Services.AddTransient<DashboardPage>();
             builder.Services.AddTransient<DashboardViewModel>();
 
