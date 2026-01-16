@@ -5,90 +5,86 @@
              xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
              x:Class="SoccerLinkPlayerSideApp.Views.DashboardPage"
              Title="Dashboard"
-             BackgroundColor="#F0F2F5">
+             Shell.NavBarIsVisible="False">
 
     <Grid RowDefinitions="Auto, *" Padding="20" RowSpacing="20">
         <VerticalStackLayout Grid.Row="0" Spacing="5">
-            <Label Text="{Binding WelcomeMessage}" FontSize="24" TextColor="#2A5670" FontAttributes="Bold"/>
-            <Label Text="Twój panel sterowania" TextColor="Gray" FontSize="14"/>
+            <Label Text="{Binding WelcomeMessage}" FontSize="28" TextColor="{StaticResource PrimaryTextColor}" FontAttributes="Bold"/>
+            <Label Text="Twój panel sterowania" TextColor="{StaticResource SecondaryTextColor}" FontSize="16"/>
         </VerticalStackLayout>
 
         <ScrollView Grid.Row="1">
             <VerticalStackLayout Spacing="20">
 
-                <Label Text="Najbliższe wydarzenie" FontAttributes="Bold" TextColor="Black" Margin="0,10,0,0"/>
+                <Label Text="Najbliższe wydarzenie" FontAttributes="Bold" TextColor="{StaticResource SecondaryTextColor}" Margin="0,10,0,0"/>
 
-                <Border IsVisible="{Binding HasNearestEvent}" StrokeShape="RoundRectangle 15" BackgroundColor="{Binding NearestEvent.Color}" StrokeThickness="0" Padding="0">
-                    <Grid ColumnDefinitions="15, *, Auto" BackgroundColor="White">
+                <Border IsVisible="{Binding HasNearestEvent}" Style="{StaticResource CardStyle}" Padding="0">
+                    <Grid ColumnDefinitions="15, *, Auto">
                         <BoxView Grid.Column="0" Color="{Binding NearestEvent.Color}" VerticalOptions="Fill"/>
                         <VerticalStackLayout Grid.Column="1" Padding="15" Spacing="5">
-                            <Label Text="{Binding NearestEvent.Title}" FontAttributes="Bold" FontSize="18" TextColor="#2A5670"/>
-                            <Label Text="{Binding NearestEvent.Description}" TextColor="Gray" FontSize="14"/>
-                            <Label Text="{Binding NearestEvent.Date, StringFormat='{0:dd MMMM, godz. HH:mm}'}" TextColor="Black" FontAttributes="Bold"/>
+                            <Label Text="{Binding NearestEvent.Title}" FontAttributes="Bold" FontSize="18" TextColor="{StaticResource PrimaryTextColor}"/>
+                            <Label Text="{Binding NearestEvent.Description}" TextColor="{StaticResource MutedTextColor}" FontSize="14"/>
+                            <Label Text="{Binding NearestEvent.Date, StringFormat='{0:dd MMMM, godz. HH:mm}'}" TextColor="{StaticResource SecondaryTextColor}" FontAttributes="Bold"/>
                         </VerticalStackLayout>
                         <Label Grid.Column="2" Text="{Binding NearestEvent.Icon}" FontSize="30" VerticalOptions="Center" Margin="0,0,20,0"/>
                     </Grid>
                 </Border>
 
-                <Border IsVisible="{Binding HasNearestEvent, Converter={StaticResource InvertedBoolConverter}}" StrokeShape="RoundRectangle 15" BackgroundColor="White" StrokeThickness="0" Padding="20">
+                <Border IsVisible="{Binding HasNearestEvent, Converter={StaticResource InvertedBoolConverter}}" Style="{StaticResource CardStyle}">
                     <VerticalStackLayout HorizontalOptions="Center" Spacing="5">
-                        <ActivityIndicator IsRunning="{Binding IsLoadingEvent}" IsVisible="{Binding IsLoadingEvent}" Color="#2A5670"/>
-                        <Label Text="Brak nadchodzących wydarzeń" TextColor="Gray" IsVisible="{Binding IsLoadingEvent, Converter={StaticResource InvertedBoolConverter}}"/>
+                        <ActivityIndicator IsRunning="{Binding IsLoadingEvent}" IsVisible="{Binding IsLoadingEvent}" Color="{StaticResource HighlightBorderColor}"/>
+                        <Label Text="Brak nadchodzących wydarzeń" TextColor="{StaticResource MutedTextColor}" IsVisible="{Binding IsLoadingEvent, Converter={StaticResource InvertedBoolConverter}}"/>
                     </VerticalStackLayout>
                 </Border>
 
+                <Label Text="Menu" FontAttributes="Bold" TextColor="{StaticResource SecondaryTextColor}" Margin="0,10,0,0"/>
 
-                <Label Text="Menu" FontAttributes="Bold" TextColor="Black" Margin="0,10,0,0"/>
+                <Grid ColumnDefinitions="*,*" RowDefinitions="140, 140" ColumnSpacing="15" RowSpacing="15">
 
-                <Grid ColumnDefinitions="*,*" RowDefinitions="120, 120" ColumnSpacing="15" RowSpacing="15">
-
-                    <Border Grid.Row="0" Grid.Column="0" BackgroundColor="White" StrokeShape="RoundRectangle 15" StrokeThickness="0">
+                    <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding GoToMessagesCommand}"/>
                         </Border.GestureRecognizers>
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                            <Label Text="✉️" FontSize="30"/>
-                            <Label Text="Wiadomości" TextColor="#2A5670" FontAttributes="Bold"/>
+                            <Label Text="✉️" FontSize="36"/>
+                            <Label Text="Wiadomości" TextColor="{StaticResource SecondaryTextColor}" FontAttributes="Bold"/>
                         </VerticalStackLayout>
                     </Border>
 
-                    <Border Grid.Row="0" Grid.Column="1" BackgroundColor="White" StrokeShape="RoundRectangle 15" StrokeThickness="0">
+                    <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardStyle}">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding GoToStatsCommand}"/>
                         </Border.GestureRecognizers>
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                            <Label Text="📊" FontSize="30"/>
-                            <Label Text="Statystyki" TextColor="#2A5670" FontAttributes="Bold"/>
+                            <Label Text="📊" FontSize="36"/>
+                            <Label Text="Statystyki" TextColor="{StaticResource SecondaryTextColor}" FontAttributes="Bold"/>
                         </VerticalStackLayout>
                     </Border>
 
-                    <Border Grid.Row="1" Grid.Column="0" BackgroundColor="White" StrokeShape="RoundRectangle 15" StrokeThickness="0">
+                    <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardStyle}">
                         <Border.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding GoToCalendarCommand}"/>
                         </Border.GestureRecognizers>
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                            <Label Text="📅" FontSize="30"/>
-                            <Label Text="Terminarz" TextColor="#2A5670" FontAttributes="Bold"/>
+                            <Label Text="📅" FontSize="36"/>
+                            <Label Text="Terminarz" TextColor="{StaticResource SecondaryTextColor}" FontAttributes="Bold"/>
                         </VerticalStackLayout>
                     </Border>
 
-                    <Border Grid.Row="1" Grid.Column="1" BackgroundColor="#F5F5F5" StrokeShape="RoundRectangle 15" StrokeThickness="0" Opacity="0.5">
-                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center">
-                            <Label Text="🔜" FontSize="30"/>
-                            <Label Text="Wkrótce" TextColor="Gray"/>
+                    <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}">
+                        <Border.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding GoToAttendanceCommand}"/>
+                        </Border.GestureRecognizers>
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
+                            <Label Text="✅" FontSize="36"/>
+                            <Label Text="Obecność" TextColor="{StaticResource SecondaryTextColor}" FontAttributes="Bold"/>
                         </VerticalStackLayout>
                     </Border>
 
                 </Grid>
 
-                <Button Text="Wyloguj" Command="{Binding LogoutCommand}" BackgroundColor="#E74C3C" TextColor="White" Margin="0,20,0,0"/>
+                <Button Text="Wyloguj" Command="{Binding LogoutCommand}" BackgroundColor="{StaticResource NegativeColor}" TextColor="White" Margin="0,20,0,0" FontAttributes="Bold"/>
             </VerticalStackLayout>
         </ScrollView>
     </Grid>
-
-    <ContentPage.Resources>
-        <ResourceDictionary>
-            <toolkit:InvertedBoolConverter x:Key="InvertedBoolConverter" />
-        </ResourceDictionary>
-    </ContentPage.Resources>
 </ContentPage>

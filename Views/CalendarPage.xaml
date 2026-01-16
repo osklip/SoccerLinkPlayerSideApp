@@ -4,31 +4,30 @@
              xmlns:viewmodels="clr-namespace:SoccerLinkPlayerSideApp.ViewModels"
              xmlns:models="clr-namespace:SoccerLinkPlayerSideApp.Models"
              x:Class="SoccerLinkPlayerSideApp.Views.CalendarPage"
-             Title="{Binding Title}"
-             BackgroundColor="#F0F2F5">
+             Title="Terminarz">
 
     <Grid RowDefinitions="Auto, *">
-        <ActivityIndicator Grid.Row="0" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="#2A5670" Margin="10"/>
+        <ActivityIndicator Grid.Row="0" IsRunning="{Binding IsBusy}" IsVisible="{Binding IsBusy}" Color="{StaticResource HighlightBorderColor}" Margin="10"/>
 
         <CollectionView Grid.Row="1" ItemsSource="{Binding Events}" Margin="15">
             <CollectionView.EmptyView>
-                <Label Text="Brak wydarzeń w terminarzu." HorizontalOptions="Center" VerticalOptions="Center" TextColor="Gray"/>
+                <Label Text="Brak wydarzeń w terminarzu." HorizontalOptions="Center" VerticalOptions="Center" TextColor="{StaticResource MutedTextColor}"/>
             </CollectionView.EmptyView>
             <CollectionView.ItemTemplate>
                 <DataTemplate x:DataType="models:CalendarItem">
-                    <Border StrokeShape="RoundRectangle 10" BackgroundColor="White" Padding="0" Margin="0,0,0,15" StrokeThickness="0">
+                    <Border Style="{StaticResource CardStyle}" Padding="0" Margin="0,0,0,15">
                         <Grid ColumnDefinitions="10, *, Auto">
                             <BoxView Grid.Column="0" Color="{Binding Color}" VerticalOptions="Fill"/>
 
                             <VerticalStackLayout Grid.Column="1" Padding="10,15,10,15" Spacing="5">
-                                <Label Text="{Binding Title}" FontAttributes="Bold" TextColor="#2A5670" FontSize="16"/>
-                                <Label Text="{Binding Description}" TextColor="Gray" FontSize="14"/>
+                                <Label Text="{Binding Title}" FontAttributes="Bold" TextColor="{StaticResource PrimaryTextColor}" FontSize="16"/>
+                                <Label Text="{Binding Description}" TextColor="{StaticResource SecondaryTextColor}" FontSize="14"/>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Grid.Column="2" Padding="15" VerticalOptions="Center" HorizontalOptions="Center">
                                 <Label Text="{Binding Icon}" FontSize="24" HorizontalOptions="Center"/>
-                                <Label Text="{Binding Date, StringFormat='{0:dd.MM}'}" FontAttributes="Bold" TextColor="Black" HorizontalOptions="Center"/>
-                                <Label Text="{Binding Date, StringFormat='{0:HH:mm}'}" TextColor="Gray" FontSize="12" HorizontalOptions="Center"/>
+                                <Label Text="{Binding Date, StringFormat='{0:dd.MM}'}" FontAttributes="Bold" TextColor="{StaticResource PrimaryTextColor}" HorizontalOptions="Center"/>
+                                <Label Text="{Binding Date, StringFormat='{0:HH:mm}'}" TextColor="{StaticResource MutedTextColor}" FontSize="12" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
                         </Grid>
                     </Border>
