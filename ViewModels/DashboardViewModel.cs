@@ -145,9 +145,16 @@ namespace SoccerLinkPlayerSideApp.ViewModels
         [RelayCommand]
         async Task GoToCalendarAsync() => await Shell.Current.GoToAsync(nameof(CalendarPage));
 
+        //[RelayCommand]
+        //async Task GoToAttendanceAsync() => await Shell.Current.GoToAsync(nameof(AttendancePage));
+
         [RelayCommand]
         async Task LogoutAsync()
         {
+            // ZMIANA 1: Potwierdzenie wylogowania
+            bool confirm = await Shell.Current.DisplayAlert("Wyloguj", "Czy na pewno chcesz się wylogować?", "Tak", "Anuluj");
+            if (!confirm) return;
+
             _sessionService.ClearUser();
             await Shell.Current.GoToAsync($"//{nameof(LoginPage)}");
         }

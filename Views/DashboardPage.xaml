@@ -10,7 +10,6 @@
     <Grid RowDefinitions="Auto, *" Padding="20" RowSpacing="20">
         <VerticalStackLayout Grid.Row="0" Spacing="5">
             <Label Text="{Binding WelcomeMessage}" FontSize="24" TextColor="{StaticResource PrimaryTextColor}" FontAttributes="Bold"/>
-            <Label Text="Twój panel sterowania" TextColor="{StaticResource SecondaryTextColor}" FontSize="14"/>
         </VerticalStackLayout>
 
         <ScrollView Grid.Row="1">
@@ -27,7 +26,14 @@
 
                             <Label Text="{Binding NearestEvent.DisplayDate}" TextColor="{StaticResource SecondaryTextColor}" FontAttributes="Bold"/>
                         </VerticalStackLayout>
-                        <Label Grid.Column="2" Text="{Binding NearestEvent.Icon}" FontSize="30" VerticalOptions="Center" Margin="0,0,20,0"/>
+
+                        <Label Grid.Column="2" 
+                               Text="{Binding NearestEvent.Icon}" 
+                               FontSize="30" 
+                               VerticalOptions="Center" 
+                               HorizontalOptions="Center" 
+                               HorizontalTextAlignment="Center"
+                               Padding="0,0,15,0"/>
                     </Grid>
                 </Border>
 
@@ -40,7 +46,7 @@
                             <TapGestureRecognizer Command="{Binding GoToMessagesCommand}"/>
                         </Border.GestureRecognizers>
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                            <Label Text="✉️" FontSize="30"/>
+                            <Label Text="✉️" FontSize="30" HorizontalTextAlignment="Center"/>
                             <Label Text="Wiadomości" TextColor="{StaticResource SecondaryTextColor}" FontAttributes="Bold"/>
                         </VerticalStackLayout>
                     </Border>
@@ -50,7 +56,7 @@
                             <TapGestureRecognizer Command="{Binding GoToStatsCommand}"/>
                         </Border.GestureRecognizers>
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                            <Label Text="📊" FontSize="30"/>
+                            <Label Text="📊" FontSize="30" HorizontalTextAlignment="Center"/>
                             <Label Text="Statystyki" TextColor="{StaticResource SecondaryTextColor}" FontAttributes="Bold"/>
                         </VerticalStackLayout>
                     </Border>
@@ -60,7 +66,7 @@
                             <TapGestureRecognizer Command="{Binding GoToCalendarCommand}"/>
                         </Border.GestureRecognizers>
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                            <Label Text="📅" FontSize="30"/>
+                            <Label Text="📅" FontSize="30" HorizontalTextAlignment="Center"/>
                             <Label Text="Terminarz" TextColor="{StaticResource SecondaryTextColor}" FontAttributes="Bold"/>
                         </VerticalStackLayout>
                     </Border>
@@ -70,7 +76,7 @@
                             <TapGestureRecognizer Command="{Binding GoToAttendanceCommand}"/>
                         </Border.GestureRecognizers>
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="10">
-                            <Label Text="✅" FontSize="30"/>
+                            <Label Text="✅" FontSize="30" HorizontalTextAlignment="Center"/>
                             <Label Text="Obecność" TextColor="{StaticResource SecondaryTextColor}" FontAttributes="Bold"/>
                         </VerticalStackLayout>
                     </Border>

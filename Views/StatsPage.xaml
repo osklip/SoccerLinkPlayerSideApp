@@ -28,58 +28,58 @@
                     </Grid>
                 </Border>
 
-                <Grid ColumnDefinitions="*,*" RowDefinitions="110, 110, 110" ColumnSpacing="15" RowSpacing="15">
+                <Grid ColumnDefinitions="*,*" RowDefinitions="140, 140, 140" ColumnSpacing="15" RowSpacing="15">
 
                     <Border Grid.Row="0" Grid.Column="0" Style="{StaticResource CardStyle}">
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
-                            <Label Text="🎯" FontSize="20"/>
-                            <Label Text="{Binding TotalStrzaly}" TextColor="{StaticResource PrimaryTextColor}" FontSize="24" FontAttributes="Bold"/>
-                            <Label Text="Strzały" TextColor="{StaticResource MutedTextColor}" FontSize="12"/>
-                            <Label Text="{Binding TotalStrzalyCelne, StringFormat='(Celne: {0})'}" TextColor="{StaticResource MutedTextColor}" FontSize="10"/>
+                            <Label Text="🎯" FontSize="20" HorizontalTextAlignment="Center"/>
+                            <Label Text="{Binding TotalStrzaly}" TextColor="{StaticResource PrimaryTextColor}" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                            <Label Text="Strzały" TextColor="{StaticResource MutedTextColor}" FontSize="12" HorizontalTextAlignment="Center"/>
+                            <Label Text="{Binding TotalStrzalyCelne, StringFormat='(Celne: {0})'}" TextColor="{StaticResource MutedTextColor}" FontSize="10" HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
                     </Border>
 
                     <Border Grid.Row="0" Grid.Column="1" Style="{StaticResource CardStyle}">
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
-                            <Label Text="📈" FontSize="20"/>
-                            <Label Text="{Binding Skutecznosc, StringFormat='{0:F0}%'}" TextColor="{StaticResource PrimaryTextColor}" FontSize="24" FontAttributes="Bold"/>
-                            <Label Text="Celność" TextColor="{StaticResource MutedTextColor}" FontSize="12"/>
+                            <Label Text="📈" FontSize="20" HorizontalTextAlignment="Center"/>
+                            <Label Text="{Binding Skutecznosc, StringFormat='{0:F0}%'}" TextColor="{StaticResource PrimaryTextColor}" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                            <Label Text="Celność" TextColor="{StaticResource MutedTextColor}" FontSize="12" HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
                     </Border>
 
                     <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource CardStyle}">
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
-                            <Label Text="🟨 🟥" FontSize="20"/>
+                            <Label Text="🟨 🟥" FontSize="20" HorizontalTextAlignment="Center"/>
                             <HorizontalStackLayout Spacing="5" HorizontalOptions="Center">
                                 <Label Text="{Binding TotalZolteKartki}" TextColor="{StaticResource WarningColor}" FontSize="24" FontAttributes="Bold"/>
                                 <Label Text="/" TextColor="{StaticResource MutedTextColor}" FontSize="24"/>
                                 <Label Text="{Binding TotalCzerwoneKartki}" TextColor="{StaticResource NegativeColor}" FontSize="24" FontAttributes="Bold"/>
                             </HorizontalStackLayout>
-                            <Label Text="Kartki" TextColor="{StaticResource MutedTextColor}" FontSize="12"/>
+                            <Label Text="Kartki" TextColor="{StaticResource MutedTextColor}" FontSize="12" HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
                     </Border>
 
                     <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource CardStyle}">
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
-                            <Label Text="🧤" FontSize="20"/>
-                            <Label Text="{Binding TotalCzysteKonta}" TextColor="{StaticResource PrimaryTextColor}" FontSize="24" FontAttributes="Bold"/>
-                            <Label Text="Czyste Konta" TextColor="{StaticResource MutedTextColor}" FontSize="12"/>
+                            <Label Text="🧤" FontSize="20" HorizontalTextAlignment="Center"/>
+                            <Label Text="{Binding TotalCzysteKonta}" TextColor="{StaticResource PrimaryTextColor}" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                            <Label Text="Czyste Konta" TextColor="{StaticResource MutedTextColor}" FontSize="12" HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
                     </Border>
 
                     <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource CardStyle}">
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
-                            <Label Text="🛑" FontSize="20"/>
-                            <Label Text="{Binding TotalFaule}" TextColor="{StaticResource PrimaryTextColor}" FontSize="24" FontAttributes="Bold"/>
-                            <Label Text="Faule" TextColor="{StaticResource MutedTextColor}" FontSize="12"/>
+                            <Label Text="🛑" FontSize="20" HorizontalTextAlignment="Center"/>
+                            <Label Text="{Binding TotalFaule}" TextColor="{StaticResource PrimaryTextColor}" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                            <Label Text="Faule" TextColor="{StaticResource MutedTextColor}" FontSize="12" HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
                     </Border>
 
                     <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource CardStyle}">
                         <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="2">
-                            <Label Text="⚽/M" FontSize="20"/>
-                            <Label Text="{Binding SredniaGoli, StringFormat='{0:F2}'}" TextColor="{StaticResource PrimaryTextColor}" FontSize="24" FontAttributes="Bold"/>
-                            <Label Text="Śr. Goli" TextColor="{StaticResource MutedTextColor}" FontSize="12"/>
+                            <Label Text="⚽/M" FontSize="20" HorizontalTextAlignment="Center"/>
+                            <Label Text="{Binding SredniaGoli, StringFormat='{0:F2}'}" TextColor="{StaticResource PrimaryTextColor}" FontSize="24" FontAttributes="Bold" HorizontalTextAlignment="Center"/>
+                            <Label Text="Śr. Goli" TextColor="{StaticResource MutedTextColor}" FontSize="12" HorizontalTextAlignment="Center"/>
                         </VerticalStackLayout>
                     </Border>
                 </Grid>
