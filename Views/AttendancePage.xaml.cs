@@ -16,7 +16,6 @@ public partial class AttendancePage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        // Pobierz najœwie¿sze dane z bazy przy ka¿dym wejœciu
         await _viewModel.LoadDataAsync();
     }
 }

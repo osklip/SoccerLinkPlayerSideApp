@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace SoccerLinkPlayerSideApp.Models // lub .Converters
+namespace SoccerLinkPlayerSideApp.Models
 {
     public class BoolToColorConverter : IValueConverter
     {
@@ -8,9 +8,9 @@ namespace SoccerLinkPlayerSideApp.Models // lub .Converters
         {
             if (value is bool isSelected && isSelected)
             {
-                return Colors.Orange; // Kolor aktywnej zakładki
+                return Colors.Orange; 
             }
-            return Color.FromArgb("#2A5670"); // Kolor nieaktywnej zakładki (ciemny niebieski)
+            return Color.FromArgb("#2A5670");
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

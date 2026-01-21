@@ -16,7 +16,6 @@ public partial class StatsPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        // £adowanie danych przy ka¿dym wejœciu
         await _viewModel.LoadStatsAsync();
     }
 }

@@ -11,17 +11,14 @@ namespace SoccerLinkPlayerSideApp.ViewModels
         private readonly DatabaseService _databaseService;
         private readonly UserSessionService _sessionService;
 
-        // Lista wyświetlana na ekranie
         public ObservableCollection<Wiadomosc> Messages { get; } = new();
 
-        // --- STANY ZAKŁADEK ---
         [ObservableProperty]
-        private bool isReceivedTab = true; // Domyślnie Odebrane
+        private bool isReceivedTab = true;
 
         [ObservableProperty]
         private bool isSentTab = false;
 
-        // --- STAN FORMULARZA NOWEJ WIADOMOŚCI ---
         [ObservableProperty]
         private bool isComposeVisible = false;
 
@@ -37,8 +34,6 @@ namespace SoccerLinkPlayerSideApp.ViewModels
             _sessionService = sessionService;
             Title = "Wiadomości";
         }
-
-        // --- ŁADOWANIE DANYCH ---
         public async Task LoadMessagesAsync()
         {
             if (IsBusy) return;
@@ -81,7 +76,6 @@ namespace SoccerLinkPlayerSideApp.ViewModels
             }
         }
 
-        // --- PRZEŁĄCZANIE ZAKŁADEK ---
         [RelayCommand]
         async Task SwitchTabAsync(string tabName)
         {
@@ -95,11 +89,8 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                 IsReceivedTab = false;
                 IsSentTab = true;
             }
-            // Przeładuj listę dla wybranej zakładki
             await LoadMessagesAsync();
         }
-
-        // --- OBSŁUGA NOWEJ WIADOMOŚCI ---
 
         [RelayCommand]
         void OpenCompose()
@@ -127,7 +118,6 @@ namespace SoccerLinkPlayerSideApp.ViewModels
             var user = _sessionService.CurrentUser;
             if (user == null) return;
 
-            // Sprawdź czy zawodnik ma trenera
             if (user.TrenerID <= 0)
             {
                 await Shell.Current.DisplayAlert("Błąd", "Nie masz przypisanego trenera, do którego mógłbyś wysłać wiadomość.", "OK");
@@ -141,7 +131,7 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                 var msg = new Wiadomosc
                 {
                     NadawcaID = user.ZawodnikID,
-                    OdbiorcaID = user.TrenerID, // Wysyłamy TYLKO do trenera
+                    OdbiorcaID = user.TrenerID,
                     Temat = NewSubject,
                     Tresc = NewBody,
                     DataWyslania = DateTime.Now
@@ -154,14 +144,12 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                     await Shell.Current.DisplayAlert("Sukces", "Wiadomość wysłana do trenera.", "OK");
                     IsComposeVisible = false;
 
-                    // Jeśli jesteśmy na zakładce wysłanych, odświeżamy listę
                     if (IsSentTab)
                     {
                         await LoadMessagesAsync();
                     }
                     else
                     {
-                        // Opcjonalnie przełącz na wysłane, żeby user zobaczył nową wiadomość
                         await SwitchTabAsync("Sent");
                     }
                 }

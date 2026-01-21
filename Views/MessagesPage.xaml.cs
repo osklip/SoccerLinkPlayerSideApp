@@ -15,7 +15,6 @@ public partial class MessagesPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        // Pobierz wiadomoœci za ka¿dym razem gdy wchodzimy na ekran
         await _viewModel.LoadMessagesAsync();
     }
 }

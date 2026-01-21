@@ -8,7 +8,6 @@ namespace SoccerLinkPlayerSideApp.ViewModels
         private readonly DatabaseService _databaseService;
         private readonly UserSessionService _sessionService;
 
-        // Właściwości statystyk
         [ObservableProperty] private int meczeRozegrane;
         [ObservableProperty] private int totalGole;
         [ObservableProperty] private int totalStrzaly;
@@ -49,12 +48,10 @@ namespace SoccerLinkPlayerSideApp.ViewModels
 
                 int userId = _sessionService.CurrentUser.ZawodnikID;
 
-                // Pobieramy listę statystyk z bazy
                 var statsList = await _databaseService.GetStatystykiListAsync(userId);
 
                 if (statsList != null && statsList.Count > 0)
                 {
-                    // Agregacja (sumowanie) danych ze wszystkich meczów
                     MeczeRozegrane = statsList.Count;
                     TotalGole = statsList.Sum(x => x.Gole);
                     TotalStrzaly = statsList.Sum(x => x.Strzaly);
@@ -64,7 +61,6 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                     TotalCzerwoneKartki = statsList.Sum(x => x.CzerwoneKartki);
                     TotalCzysteKonta = statsList.Sum(x => x.CzysteKonta);
 
-                    // Obliczenia średnich
                     SredniaGoli = MeczeRozegrane > 0 ? (double)TotalGole / MeczeRozegrane : 0;
                     Skutecznosc = TotalStrzaly > 0 ? ((double)TotalStrzalyCelne / TotalStrzaly) * 100 : 0;
 
@@ -72,14 +68,12 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                 }
                 else
                 {
-                    // Jeśli lista pusta lub null
                     ResetStats();
                     HasData = false;
                 }
             }
             catch (Exception ex)
             {
-                // W razie błędu wyświetlamy Alert systemowy, a nie czerwone pole
                 await Shell.Current.DisplayAlert("Błąd", $"Nie udało się pobrać statystyk: {ex.Message}", "OK");
                 HasData = false;
             }

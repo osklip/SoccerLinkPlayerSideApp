@@ -32,7 +32,6 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                 int trenerId = _sessionService.CurrentUser.TrenerID;
                 if (trenerId <= 0) return;
 
-                // 1. Pobierz dane
                 var taskMecze = _databaseService.GetMeczeAsync(trenerId);
                 var taskTreningi = _databaseService.GetTreningiAsync(trenerId);
                 var taskWydarzenia = _databaseService.GetWydarzeniaAsync(trenerId);
@@ -41,7 +40,6 @@ namespace SoccerLinkPlayerSideApp.ViewModels
 
                 var allItems = new List<CalendarItem>();
 
-                // 2. Mapowanie
                 foreach (var m in taskMecze.Result)
                 {
                     allItems.Add(new CalendarItem
@@ -81,10 +79,8 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                     });
                 }
 
-                // 3. FILTROWANIE (Tylko przyszłe) + Sortowanie
                 var now = DateTime.Now;
 
-                // Zmieniono warunek na >= aby pokazywać też te, które trwają w tej chwili
                 var futureItems = allItems
                                     .Where(x => x.Date >= now)
                                     .OrderBy(x => x.Date)

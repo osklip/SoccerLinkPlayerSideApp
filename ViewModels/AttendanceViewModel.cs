@@ -41,7 +41,6 @@ namespace SoccerLinkPlayerSideApp.ViewModels
                 int trenerId = _sessionService.CurrentUser.TrenerID;
                 int zawodnikId = _sessionService.CurrentUser.ZawodnikID;
 
-                // Pobieramy mecze z bazy
                 var matches = await _databaseService.GetAttendanceItemsAsync(trenerId, zawodnikId);
 
                 foreach (var item in matches)
@@ -62,14 +61,12 @@ namespace SoccerLinkPlayerSideApp.ViewModels
         [RelayCommand]
         async Task SetPresence(AttendanceItem item)
         {
-            // 1 = Obecny
             await UpdateStatusAsync(item, true, 1);
         }
 
         [RelayCommand]
         async Task SetAbsence(AttendanceItem item)
         {
-            // 0 = Nieobecny
             await UpdateStatusAsync(item, false, 0);
         }
 
@@ -81,12 +78,10 @@ namespace SoccerLinkPlayerSideApp.ViewModels
             {
                 int zawodnikId = _sessionService.CurrentUser.ZawodnikID;
 
-                // Zapis do bazy (status jako int)
                 bool success = await _databaseService.SaveDostepnoscAsync(item.Id, zawodnikId, statusValue);
 
                 if (success)
                 {
-                    // Aktualizacja UI
                     item.IsPresent = isPresent;
                     RefreshItem(item);
                 }
@@ -103,7 +98,6 @@ namespace SoccerLinkPlayerSideApp.ViewModels
 
         private void RefreshItem(AttendanceItem item)
         {
-            // Wymuszenie odświeżenia elementu na liście
             var index = Items.IndexOf(item);
             if (index >= 0)
             {

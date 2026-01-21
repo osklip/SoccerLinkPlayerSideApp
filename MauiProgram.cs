@@ -24,11 +24,9 @@ namespace SoccerLinkPlayerSideApp
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
-            // Rejestracja serwisu bazy (Singleton - jedna instancja)
             builder.Services.AddSingleton<DatabaseService>();
             builder.Services.AddSingleton<UserSessionService>();
 
-            // Widoki i ViewModele
             builder.Services.AddTransient<LoginPage>();
             builder.Services.AddTransient<LoginViewModel>();
 
@@ -38,7 +36,6 @@ namespace SoccerLinkPlayerSideApp
             builder.Services.AddTransient<DashboardPage>();
             builder.Services.AddTransient<DashboardViewModel>();
 
-            // Podstrony
             builder.Services.AddTransient<MessagesPage>();
             builder.Services.AddTransient<MessagesViewModel>();
 
@@ -47,6 +44,9 @@ namespace SoccerLinkPlayerSideApp
 
             builder.Services.AddTransient<CalendarPage>();
             builder.Services.AddTransient<CalendarViewModel>();
+
+            builder.Services.AddTransient<AttendancePage>();
+            builder.Services.AddTransient<AttendanceViewModel>();
 
             return builder.Build();
         }

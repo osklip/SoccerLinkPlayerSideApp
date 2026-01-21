@@ -16,7 +16,6 @@ public partial class DashboardPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        // To musi tutaj byæ, aby pobraæ dane po wejœciu na ekran
         await _viewModel.LoadDashboardData();
     }
 }

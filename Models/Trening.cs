@@ -11,7 +11,6 @@ namespace SoccerLinkPlayerSideApp.Models
         public int TreningID { get; set; }
         public string Typ { get; set; }
         public int ListaObecnosciID { get; set; }
-
         public DateTime Data { get; set; }
         public DateTime GodzinaRozpoczecia { get; set; }
         public DateTime GodzinaZakonczenia { get; set; }

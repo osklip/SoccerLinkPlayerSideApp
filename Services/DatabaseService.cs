@@ -201,12 +201,11 @@ namespace SoccerLinkPlayerSideApp.Services
             catch (Exception ex) { Debug.WriteLine($"[WYDARZENIA ERROR]: {ex.Message}"); return new List<Wydarzenie>(); }
         }
 
-        // --- DOSTĘPNOŚĆ (ATTENDANCE) ---
+        // --- DOSTĘPNOŚĆ ---
 
         public async Task<List<AttendanceItem>> GetAttendanceItemsAsync(int trenerId, int zawodnikId)
         {
             var today = DateTime.Now.ToString("yyyy-MM-dd");
-            // LEFT JOIN aby pobrać też te mecze, gdzie nie ma wpisu w MeczDostepnosc (wtedy Status = NULL)
             var sql = $"SELECT m.MeczID, m.Przeciwnik, m.Miejsce, m.Data, m.Godzina, d.Status " +
                       $"FROM Mecz m " +
                       $"LEFT JOIN MeczDostepnosc d ON m.MeczID = d.MeczID AND d.ZawodnikID = {zawodnikId} " +
@@ -229,14 +228,12 @@ namespace SoccerLinkPlayerSideApp.Services
 
                         var statusStr = GetValue(row, cols, "Status");
 
-                        // Logika mapowania Status (int) na bool?
                         bool? isPresent = null;
                         if (!string.IsNullOrEmpty(statusStr))
                         {
-                            // Status w bazie to int: 1 lub 0
                             int status = ParseInt(statusStr);
                             if (status == 1) isPresent = true;
-                            else isPresent = false; // Zakładamy, że 0 to nieobecny
+                            else isPresent = false;
                         }
 
                         list.Add(new AttendanceItem
@@ -260,7 +257,6 @@ namespace SoccerLinkPlayerSideApp.Services
 
         public async Task<bool> SaveDostepnoscAsync(int meczId, int zawodnikId, int status)
         {
-            // status: 1 = Obecny, 0 = Nieobecny
             var checkSql = $"SELECT DostepnoscID FROM MeczDostepnosc WHERE MeczID = {meczId} AND ZawodnikID = {zawodnikId}";
             var nowStr = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
@@ -271,13 +267,10 @@ namespace SoccerLinkPlayerSideApp.Services
                 string sql;
                 if (checkResponse != null && checkResponse.Rows != null && checkResponse.Rows.Count > 0)
                 {
-                    // UPDATE
-                    // Zapisujemy Status jako liczbę (bez apostrofów, bo to int)
                     sql = $"UPDATE MeczDostepnosc SET Status = {status}, DataZgloszenia = '{nowStr}' WHERE MeczID = {meczId} AND ZawodnikID = {zawodnikId}";
                 }
                 else
                 {
-                    // INSERT
                     sql = $"INSERT INTO MeczDostepnosc (MeczID, ZawodnikID, Status, DataZgloszenia) VALUES ({meczId}, {zawodnikId}, {status}, '{nowStr}')";
                 }
 
