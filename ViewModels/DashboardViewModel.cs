@@ -146,7 +146,7 @@ namespace SoccerLinkPlayerSideApp.ViewModels
         async Task GoToCalendarAsync() => await Shell.Current.GoToAsync(nameof(CalendarPage));
 
         //[RelayCommand]
-        //async Task GoToAttendanceAsync() => await Shell.Current.GoToAsync(nameof(AttendancePage));
+        async Task GoToAttendanceAsync() => await Shell.Current.GoToAsync(nameof(AttendancePage));
 
         [RelayCommand]
         async Task LogoutAsync()

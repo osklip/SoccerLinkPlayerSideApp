@@ -24,16 +24,13 @@ namespace SoccerLinkPlayerSideApp.Services
             var safeEmail = email.Replace("'", "''");
             var safePass = haslo.Replace("'", "''");
             var sql = $"SELECT * FROM Zawodnik WHERE AdresEmail = '{safeEmail}' AND Haslo = '{safePass}'";
-
             try
             {
                 var response = await ExecuteSqlAsync(sql);
-
                 if (response != null && response.Rows != null && response.Rows.Count > 0)
                 {
                     var row = response.Rows[0];
                     var cols = response.Columns;
-
                     return new Zawodnik
                     {
                         ZawodnikID = ParseInt(GetValue(row, cols, "ZawodnikID")),
@@ -45,41 +42,26 @@ namespace SoccerLinkPlayerSideApp.Services
                         TrenerID = ParseInt(GetValue(row, cols, "TrenerID")),
                         NumerTelefonu = GetValue(row, cols, "NumerTelefonu"),
                         LepszaNoga = GetValue(row, cols, "LepszaNoga"),
-                        CzyDyspozycyjny = ParseInt(GetValue(row, cols, "CzyDyspozycyjny")),
-                        ProbyLogowania = ParseInt(GetValue(row, cols, "ProbyLogowania")),
-                        Haslo = GetValue(row, cols, "Haslo"),
-                        DataUrodzenia = ParseDateTime(GetValue(row, cols, "DataUrodzenia"))
+                        CzyDyspozycyjny = ParseInt(GetValue(row, cols, "CzyDyspozycyjny"))
                     };
                 }
                 return null;
             }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"[LOGIN ERROR]: {ex.Message}");
-                throw;
-            }
+            catch (Exception ex) { Debug.WriteLine($"[LOGIN ERROR]: {ex.Message}"); throw; }
         }
 
         // --- WIADOMOŚCI ---
         public async Task<List<Wiadomosc>> GetWiadomosciOdebraneAsync(int zawodnikId)
         {
             var sql = $"SELECT * FROM Wiadomosc WHERE OdbiorcaID = {zawodnikId} AND TypOdbiorcy = 'Zawodnik' ORDER BY DataWyslania DESC";
-            try
-            {
-                var response = await ExecuteSqlAsync(sql);
-                return ParseWiadomosci(response);
-            }
+            try { var response = await ExecuteSqlAsync(sql); return ParseWiadomosci(response); }
             catch (Exception ex) { Debug.WriteLine($"[MSG ERROR]: {ex.Message}"); return new List<Wiadomosc>(); }
         }
 
         public async Task<List<Wiadomosc>> GetWiadomosciWyslaneAsync(int zawodnikId)
         {
             var sql = $"SELECT * FROM Wiadomosc WHERE NadawcaID = {zawodnikId} AND TypNadawcy = 'Zawodnik' ORDER BY DataWyslania DESC";
-            try
-            {
-                var response = await ExecuteSqlAsync(sql);
-                return ParseWiadomosci(response);
-            }
+            try { var response = await ExecuteSqlAsync(sql); return ParseWiadomosci(response); }
             catch (Exception ex) { Debug.WriteLine($"[MSG ERROR]: {ex.Message}"); return new List<Wiadomosc>(); }
         }
 
@@ -88,44 +70,48 @@ namespace SoccerLinkPlayerSideApp.Services
             var safeTemat = msg.Temat?.Replace("'", "''") ?? "";
             var safeTresc = msg.Tresc?.Replace("'", "''") ?? "";
             var dataStr = msg.DataWyslania.ToString("yyyy-MM-dd HH:mm:ss");
-
-            var sql = $"INSERT INTO Wiadomosc (NadawcaID, OdbiorcaID, TypNadawcy, TypOdbiorcy, Temat, Tresc, DataWyslania) " +
-                      $"VALUES ({msg.NadawcaID}, {msg.OdbiorcaID}, 'Zawodnik', 'Trener', '{safeTemat}', '{safeTresc}', '{dataStr}')";
-
-            try
-            {
-                var response = await ExecuteSqlAsync(sql);
-                return response != null;
-            }
+            var sql = $"INSERT INTO Wiadomosc (NadawcaID, OdbiorcaID, TypNadawcy, TypOdbiorcy, Temat, Tresc, DataWyslania) VALUES ({msg.NadawcaID}, {msg.OdbiorcaID}, 'Zawodnik', 'Trener', '{safeTemat}', '{safeTresc}', '{dataStr}')";
+            try { var response = await ExecuteSqlAsync(sql); return response != null; }
             catch (Exception ex) { Debug.WriteLine($"[SEND MSG ERROR]: {ex.Message}"); return false; }
         }
 
-        private List<Wiadomosc> ParseWiadomosci(TursoResult? response)
+        // --- STATYSTYKI ---
+        public async Task<List<StatystykiZawodnika>> GetStatystykiListAsync(int zawodnikId)
         {
-            var list = new List<Wiadomosc>();
-            if (response != null && response.Rows != null)
+            var sql = $"SELECT * FROM StatystykiZawodnika WHERE ZawodnikID = {zawodnikId}";
+            try
             {
-                var cols = response.Columns;
-                foreach (var rowToken in response.Rows)
+                var response = await ExecuteSqlAsync(sql);
+                var list = new List<StatystykiZawodnika>();
+                if (response?.Rows != null)
                 {
-                    list.Add(new Wiadomosc
+                    var cols = response.Columns;
+                    foreach (var row in response.Rows)
                     {
-                        WiadomoscID = ParseInt(GetValue(rowToken, cols, "WiadomoscID")),
-                        NadawcaID = ParseInt(GetValue(rowToken, cols, "NadawcaID")),
-                        OdbiorcaID = ParseInt(GetValue(rowToken, cols, "OdbiorcaID")),
-                        TypNadawcy = GetValue(rowToken, cols, "TypNadawcy"),
-                        TypOdbiorcy = GetValue(rowToken, cols, "TypOdbiorcy"),
-                        Tresc = GetValue(rowToken, cols, "Tresc"),
-                        DataWyslania = ParseDateTime(GetValue(rowToken, cols, "DataWyslania")),
-                        Temat = GetValue(rowToken, cols, "Temat")
-                    });
+                        list.Add(new StatystykiZawodnika
+                        {
+                            StatZawodnikaID = ParseInt(GetValue(row, cols, "StatZawodnikaID")),
+                            MeczID = ParseInt(GetValue(row, cols, "MeczID")),
+                            ZawodnikID = ParseInt(GetValue(row, cols, "ZawodnikID")),
+                            TrenerID = ParseInt(GetValue(row, cols, "TrenerID")),
+                            Gole = ParseInt(GetValue(row, cols, "Gole")),
+                            Strzaly = ParseInt(GetValue(row, cols, "Strzaly")),
+                            StrzalyCelne = ParseInt(GetValue(row, cols, "StrzalyCelne")),
+                            StrzalyNiecelne = ParseInt(GetValue(row, cols, "StrzalyNiecelne")),
+                            PodaniaCelne = ParseInt(GetValue(row, cols, "PodaniaCelne")),
+                            Faule = ParseInt(GetValue(row, cols, "Faule")),
+                            ZolteKartki = ParseInt(GetValue(row, cols, "ZolteKartki")),
+                            CzerwoneKartki = ParseInt(GetValue(row, cols, "CzerwoneKartki")),
+                            CzysteKonta = ParseInt(GetValue(row, cols, "CzysteKonta"))
+                        });
+                    }
                 }
+                return list;
             }
-            return list;
+            catch (Exception ex) { Debug.WriteLine($"[STATS ERROR]: {ex.Message}"); throw new Exception($"Błąd SQL: {ex.Message}"); }
         }
 
         // --- KALENDARZ ---
-
         public async Task<List<Mecz>> GetMeczeAsync(int trenerId)
         {
             var sql = $"SELECT * FROM Mecz WHERE TrenerID = {trenerId} ORDER BY Data ASC";
@@ -135,9 +121,6 @@ namespace SoccerLinkPlayerSideApp.Services
                 var list = new List<Mecz>();
                 if (response?.Rows != null)
                 {
-                    // DIAGNOSTYKA: Wypisz kolumny z bazy
-                    Debug.WriteLine($"[DB MECZ] Kolumny: {string.Join(", ", response.Columns)}");
-
                     var cols = response.Columns;
                     foreach (var row in response.Rows)
                     {
@@ -218,34 +201,51 @@ namespace SoccerLinkPlayerSideApp.Services
             catch (Exception ex) { Debug.WriteLine($"[WYDARZENIA ERROR]: {ex.Message}"); return new List<Wydarzenie>(); }
         }
 
-        // --- STATYSTYKI ---
-        public async Task<List<StatystykiZawodnika>> GetStatystykiListAsync(int zawodnikId)
+        // --- DOSTĘPNOŚĆ (ATTENDANCE) ---
+
+        public async Task<List<AttendanceItem>> GetAttendanceItemsAsync(int trenerId, int zawodnikId)
         {
-            var sql = $"SELECT * FROM StatystykiZawodnika WHERE ZawodnikID = {zawodnikId}";
+            var today = DateTime.Now.ToString("yyyy-MM-dd");
+            // LEFT JOIN aby pobrać też te mecze, gdzie nie ma wpisu w MeczDostepnosc (wtedy Status = NULL)
+            var sql = $"SELECT m.MeczID, m.Przeciwnik, m.Miejsce, m.Data, m.Godzina, d.Status " +
+                      $"FROM Mecz m " +
+                      $"LEFT JOIN MeczDostepnosc d ON m.MeczID = d.MeczID AND d.ZawodnikID = {zawodnikId} " +
+                      $"WHERE m.TrenerID = {trenerId} AND m.Data >= '{today}' " +
+                      $"ORDER BY m.Data ASC";
+
             try
             {
                 var response = await ExecuteSqlAsync(sql);
-                var list = new List<StatystykiZawodnika>();
-                if (response != null && response.Rows != null)
+                var list = new List<AttendanceItem>();
+
+                if (response?.Rows != null)
                 {
                     var cols = response.Columns;
                     foreach (var row in response.Rows)
                     {
-                        list.Add(new StatystykiZawodnika
+                        var data = ParseDateTime(GetValue(row, cols, "Data"));
+                        var godzina = ParseDateTime(GetValue(row, cols, "Godzina"));
+                        var fullDate = data.Date + godzina.TimeOfDay;
+
+                        var statusStr = GetValue(row, cols, "Status");
+
+                        // Logika mapowania Status (int) na bool?
+                        bool? isPresent = null;
+                        if (!string.IsNullOrEmpty(statusStr))
                         {
-                            StatZawodnikaID = ParseInt(GetValue(row, cols, "StatZawodnikaID")),
-                            MeczID = ParseInt(GetValue(row, cols, "MeczID")),
-                            ZawodnikID = ParseInt(GetValue(row, cols, "ZawodnikID")),
-                            TrenerID = ParseInt(GetValue(row, cols, "TrenerID")),
-                            Gole = ParseInt(GetValue(row, cols, "Gole")),
-                            Strzaly = ParseInt(GetValue(row, cols, "Strzaly")),
-                            StrzalyCelne = ParseInt(GetValue(row, cols, "StrzalyCelne")),
-                            StrzalyNiecelne = ParseInt(GetValue(row, cols, "StrzalyNiecelne")),
-                            PodaniaCelne = ParseInt(GetValue(row, cols, "PodaniaCelne")),
-                            Faule = ParseInt(GetValue(row, cols, "Faule")),
-                            ZolteKartki = ParseInt(GetValue(row, cols, "ZolteKartki")),
-                            CzerwoneKartki = ParseInt(GetValue(row, cols, "CzerwoneKartki")),
-                            CzysteKonta = ParseInt(GetValue(row, cols, "CzysteKonta"))
+                            // Status w bazie to int: 1 lub 0
+                            int status = ParseInt(statusStr);
+                            if (status == 1) isPresent = true;
+                            else isPresent = false; // Zakładamy, że 0 to nieobecny
+                        }
+
+                        list.Add(new AttendanceItem
+                        {
+                            Id = ParseInt(GetValue(row, cols, "MeczID")),
+                            Title = $"Mecz: {GetValue(row, cols, "Przeciwnik")}",
+                            Location = GetValue(row, cols, "Miejsce"),
+                            DateDisplay = fullDate.ToString("dd.MM HH:mm"),
+                            IsPresent = isPresent
                         });
                     }
                 }
@@ -253,35 +253,79 @@ namespace SoccerLinkPlayerSideApp.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"[STATS ERROR]: {ex.Message}");
-                throw new Exception($"Błąd SQL: {ex.Message}");
+                Debug.WriteLine($"[GET ATTENDANCE ERROR]: {ex.Message}");
+                return new List<AttendanceItem>();
+            }
+        }
+
+        public async Task<bool> SaveDostepnoscAsync(int meczId, int zawodnikId, int status)
+        {
+            // status: 1 = Obecny, 0 = Nieobecny
+            var checkSql = $"SELECT DostepnoscID FROM MeczDostepnosc WHERE MeczID = {meczId} AND ZawodnikID = {zawodnikId}";
+            var nowStr = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+            try
+            {
+                var checkResponse = await ExecuteSqlAsync(checkSql);
+
+                string sql;
+                if (checkResponse != null && checkResponse.Rows != null && checkResponse.Rows.Count > 0)
+                {
+                    // UPDATE
+                    // Zapisujemy Status jako liczbę (bez apostrofów, bo to int)
+                    sql = $"UPDATE MeczDostepnosc SET Status = {status}, DataZgloszenia = '{nowStr}' WHERE MeczID = {meczId} AND ZawodnikID = {zawodnikId}";
+                }
+                else
+                {
+                    // INSERT
+                    sql = $"INSERT INTO MeczDostepnosc (MeczID, ZawodnikID, Status, DataZgloszenia) VALUES ({meczId}, {zawodnikId}, {status}, '{nowStr}')";
+                }
+
+                var response = await ExecuteSqlAsync(sql);
+                return response != null;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"[SAVE ATTENDANCE ERROR]: {ex.Message}");
+                return false;
             }
         }
 
         // --- HELPERY ---
+        private List<Wiadomosc> ParseWiadomosci(TursoResult? response)
+        {
+            var list = new List<Wiadomosc>();
+            if (response != null && response.Rows != null)
+            {
+                var cols = response.Columns;
+                foreach (var rowToken in response.Rows)
+                {
+                    list.Add(new Wiadomosc
+                    {
+                        WiadomoscID = ParseInt(GetValue(rowToken, cols, "WiadomoscID")),
+                        NadawcaID = ParseInt(GetValue(rowToken, cols, "NadawcaID")),
+                        OdbiorcaID = ParseInt(GetValue(rowToken, cols, "OdbiorcaID")),
+                        TypNadawcy = GetValue(rowToken, cols, "TypNadawcy"),
+                        TypOdbiorcy = GetValue(rowToken, cols, "TypOdbiorcy"),
+                        Tresc = GetValue(rowToken, cols, "Tresc"),
+                        DataWyslania = ParseDateTime(GetValue(rowToken, cols, "DataWyslania")),
+                        Temat = GetValue(rowToken, cols, "Temat")
+                    });
+                }
+            }
+            return list;
+        }
 
-        // Zmieniono na publiczne dla celów diagnostycznych, jeśli potrzeba
         private async Task<TursoResult?> ExecuteSqlAsync(string sql)
         {
-            var requestBody = new
-            {
-                requests = new object[]
-                {
-                    new { type = "execute", stmt = new { sql = sql } },
-                    new { type = "close" }
-                }
-            };
+            var requestBody = new { requests = new object[] { new { type = "execute", stmt = new { sql = sql } }, new { type = "close" } } };
             var json = JsonConvert.SerializeObject(requestBody);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
             var url = $"{Constants.DatabaseUrl}/v2/pipeline";
             var response = await _httpClient.PostAsync(url, content);
-            var responseString = await response.Content.ReadAsStringAsync();
-
             if (!response.IsSuccessStatusCode) throw new Exception($"HTTP Error: {response.StatusCode}");
-
-            var jsonResponse = JObject.Parse(responseString);
+            var jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync());
             var results = jsonResponse["results"] as JArray;
-
             if (results != null && results.Count > 0)
             {
                 var firstResult = results[0];
@@ -299,33 +343,18 @@ namespace SoccerLinkPlayerSideApp.Services
             return null;
         }
 
-        // --- FIX CASE-SENSITIVITY ---
-        // Ta metoda teraz ignoruje wielkość liter przy szukaniu kolumny!
         private string GetValue(JToken row, List<string> cols, string colName)
         {
             var rowArray = row as JArray;
             if (rowArray == null) return string.Empty;
-
-            // Szukamy indeksu ignorując wielkość liter
             int index = cols.FindIndex(c => string.Equals(c, colName, StringComparison.OrdinalIgnoreCase));
-
             if (index == -1 || index >= rowArray.Count) return string.Empty;
             return rowArray[index]["value"]?.ToString() ?? string.Empty;
         }
 
         private int ParseInt(string value) => int.TryParse(value, out int r) ? r : 0;
         private DateTime ParseDateTime(string value) => DateTime.TryParse(value, out DateTime r) ? r : DateTime.MinValue;
-        private bool ParseBool(string value)
-        {
-            if (value == "1") return true;
-            if (bool.TryParse(value, out bool r)) return r;
-            return false;
-        }
-
-        private class TursoResult
-        {
-            public List<string> Columns { get; set; } = new();
-            public JArray? Rows { get; set; }
-        }
+        private bool ParseBool(string value) { if (value == "1") return true; if (bool.TryParse(value, out bool r)) return r; return false; }
+        private class TursoResult { public List<string> Columns { get; set; } = new(); public JArray? Rows { get; set; } }
     }
 }
